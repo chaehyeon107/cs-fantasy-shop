@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:8
+    container_name: cs-fantasy-mongo-dev
+    restart: unless-stopped
+    ports:
+      - "27017:27017"      # 로컬에서 mongodb://localhost:27017 접속
+    volumes:
+      - mongo-data-dev:/data/db
+
+  redis:
+    image: redis:8
+    container_name: cs-fantasy-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"        # 로컬에서 redis://localhost:6379 접속
+    volumes:
+      - redis-data-dev:/data
+
+volumes:
+  mongo-data-dev:
+  redis-data-dev:

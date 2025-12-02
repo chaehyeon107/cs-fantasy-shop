@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: cs-fantasy-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:7
+    container_name: cs-fantasy-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  app:
+    build: .
+    container_name: cs-fantasy-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.prod         # 🔥 배포용 환경변수 파일
+    depends_on:
+      - mongo
+      - redis
+
+volumes:
+  mongo-data:
+  redis-data:
