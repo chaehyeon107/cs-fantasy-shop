@@ -12,6 +12,7 @@ const {
 const { sendError } = require("../utils/errorResponse");
 const { initFirebase } = require("../config/firebase");
 const { prisma } = require("../config/prisma");
+const { getKakaoTokens, getKakaoUser } = require("../services/kakao.service");
 
 //
 // 공통: Validation 에러 처리
@@ -24,6 +25,35 @@ function handleValidation(req, res) {
     });
   }
   return null;
+}
+
+// Kakao 계정 정보로 Prisma User 찾거나 없으면 생성
+async function findOrCreateKakaoUser({ email, kakaoId, nickname }) {
+  // 1) provider + providerId 기준 조회
+  let user = await prisma.user.findFirst({
+    where: {
+      provider: "kakao",
+      providerId: String(kakaoId),
+    },
+  });
+
+  // 2) 없으면 생성
+  if (!user) {
+    const dummyPassword = await bcrypt.hash(`kakao_${kakaoId}_dummy`, 10);
+
+    user = await prisma.user.create({
+      data: {
+        email: email,
+        password: dummyPassword,
+        nickname: nickname,
+        provider: "kakao",
+        providerId: String(kakaoId),
+        role: "ROLE_USER",
+      },
+    });
+  }
+
+  return user;
 }
 
 /**
@@ -201,74 +231,115 @@ exports.me = async (req, res, next) => {
  * 카카오 소셜 로그인
  * POST /api/auth/kakao
  * Body:
- *   - accessToken: string  (카카오 OAuth Access Token)
+ *   - code: string  (Kakao OAuth authorization code)
  * Description:
- *   - Kakao API로 사용자 검증 후 Access/Refresh Token 발급
+ *   - Kakao OAuth 인가 코드를 사용해 사용자 정보를 가져온 뒤
+ *     내부 User를 생성/조회하고 자체 JWT를 발급한다.
  */
-
 exports.kakaoLogin = async (req, res, next) => {
   try {
     const invalid = handleValidation(req, res);
     if (invalid) return;
 
-    const { accessToken } = req.body;
+    const { code } = req.body;
 
-    // 1) Kakao 사용자 정보
-    const kakaoRes = await axios.get("https://kapi.kakao.com/v2/user/me", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    // 1) Kakao 토큰 발급 (code -> access_token)
+    const tokenRes = await axios.post(
+      "https://kauth.kakao.com/oauth/token",
+      null,
+      {
+        params: {
+          grant_type: "authorization_code",
+          client_id: process.env.KAKAO_REST_API_KEY,
+          redirect_uri: process.env.KAKAO_REDIRECT_URI,
+          // client_secret 사용 중이면 여기에 client_secret도 추가
+          // client_secret: process.env.KAKAO_CLIENT_SECRET,
+          code,
+        },
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
+
+    const { access_token } = tokenRes.data;
+
+    // 2) Kakao 사용자 정보 조회
+    const kakaoRes = await axios.get(
+      "https://kapi.kakao.com/v2/user/me",
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      }
+    );
 
     const kakaoUser = kakaoRes.data;
-    const kakaoId = kakaoUser.id;
+    const kakaoId = kakaoUser.id?.toString();
     const kakaoAccount = kakaoUser.kakao_account || {};
+    const profile = kakaoAccount.profile || {};
 
-    const email = kakaoAccount.email;
+    // 원본 닉네임(표시용)
     const nickname =
-      (kakaoAccount.profile && kakaoAccount.profile.nickname) ||
-      `kakao_${kakaoId}`;
+      profile.nickname ||
+      `kakao_${kakaoId || "user"}`;
 
-    if (!email) {
-      return sendError(res, req, "SOCIAL_LOGIN_FAILED", {
-        details: { message: "Kakao email not provided" },
-      });
+    // 🔧 내부용 이메일 생성 (닉네임 + kakaoId 기반, 항상 유니크 & NOT NULL)
+    // 1) 닉네임 정규화 (한글/특수문자 제거)
+    let localPart =
+      nickname
+        .toString()
+        .normalize("NFKD")          // 유니코드 분해
+        .replace(/[^\w]+/g, "")     // 영문/숫자/언더바만 남김
+        .toLowerCase();
+
+    if (!localPart) {
+      localPart = `kakao${kakaoId || "user"}`;
     }
 
-    // 2) 유저 조회 or 생성
+    const syntheticEmail = `${localPart}_${kakaoId || "id"}@kakao.local`;
+
+    // 3) 유저 조회 or 생성
+    //   - provider + providerId로 1차 조회
     let user = await prisma.user.findFirst({
       where: {
         provider: "kakao",
-        providerId: String(kakaoId),
+        providerId: kakaoId,
       },
     });
 
+    //   - 없으면 새로 생성 (email은 내부용 syntheticEmail 사용)
     if (!user) {
-      const dummyPassword = await bcrypt.hash(`kakao_${kakaoId}_dummy`, 10);
+      const dummyPassword = await bcrypt.hash(
+        `kakao_${kakaoId}_dummy`,
+        10
+      );
 
       user = await prisma.user.create({
         data: {
-          email,
+          email: syntheticEmail,   // 🔥 실제 이메일 대신 내부용 이메일
           password: dummyPassword,
-          nickname,
+          nickname,                // 화면에 보여줄 땐 이 필드를 사용
           provider: "kakao",
-          providerId: String(kakaoId),
+          providerId: kakaoId,
           role: "ROLE_USER",
         },
       });
     }
 
-    // 3) JWT 발급
+    // 4) JWT 발급 (우리 서비스의 Access/Refresh Token)
     const result = await issueTokensForUser(user);
 
     return apiResponse.success(res, result, 200);
   } catch (err) {
-    console.error("Kakao login error:", err.response?.data || err.message);
+    console.error(
+      "Kakao login error:",
+      err.response?.data || err.message
+    );
     return sendError(res, req, "SOCIAL_LOGIN_FAILED", {
       details: err.response?.data || { message: err.message },
     });
   }
 };
+
 
 /**
  * Firebase 소셜 로그인

@@ -27,6 +27,23 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
+app.get("/auth/kakao/callback", (req, res) => {
+  const code = req.query.code;
+
+  return res.send(`
+    <html>
+      <body>
+        <h3>Kakao 로그인 인가 코드</h3>
+        <p>아래 code 값을 Postman에서 <code>POST /api/auth/kakao</code> 요청 Body에 넣어 사용하세요.</p>
+        <pre style="padding: 8px; background: #f4f4f4; border: 1px solid #ccc;">
+code = ${code || "(code 없음)"}
+        </pre>
+      </body>
+    </html>
+  `);
+});
+
+
 // 전역 에러 핸들러 등록
 app.use(errorHandler);
 
