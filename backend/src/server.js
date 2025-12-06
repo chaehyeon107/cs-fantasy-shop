@@ -1,23 +1,36 @@
-// src/server.js
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
+require("dotenv").config({ path: ".env.dev" });
+
+const express = require("express");
+const cors = require("cors");
+const morgan = require("morgan");
+const routes = require("./routes");
+const { connectRedis } = require("./config/redis");
+const errorHandler = require("./middleware/error.middleware");
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4000
+
+
+// 2️⃣ Redis 연결
+connectRedis();
 
 // 미들웨어
 app.use(cors());
-app.use(morgan('dev'));
-app.use(express.json()); // JSON body 파싱
+app.use(morgan("dev"));
+app.use(express.json());
 
-// 헬스체크용 엔드포인트
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: '컴공 판타지 아이템 쇼핑몰 backend 살아있음 🧙‍♂️' });
+// 3️⃣ 라우트
+app.use("/api", routes);
+
+// 헬스 체크
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
 });
 
-// 앞으로 여기에 로그인, 상품조회, 장바구니, 결제 API 추가하면 됨!
+// 전역 에러 핸들러 등록
+app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Backend server running on port ${PORT}`);
+  console.log(`✅ Server listening on port ${PORT}`);
 });
+

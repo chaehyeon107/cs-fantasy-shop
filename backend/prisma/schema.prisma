@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+//
+// User
+// 로그인 + RBAC + 소셜 로그인을 모두 이쪽으로 옮길 예정
+//
+model User {
+  id         Int      @id @default(autoincrement()) @map("id")
+  email      String   @unique                      @map("email")
+  password   String                                @map("password")
+  nickname   String                                @map("nickname")
+  role       String   @default("ROLE_USER")         @map("role")
+  provider   String   @default("local")             @map("provider")
+  providerId String?                                @map("provider_id")
+
+  createdAt  DateTime @default(now())               @map("created_at")
+  updatedAt  DateTime @updatedAt                    @map("updated_at")
+
+  @@index([provider, providerId])
+  @@map("users")  // 테이블 이름도 snake_case 추천 (optional)
+}
+
+//
+// Item
+//
+model Item {
+  id             Int      @id @default(autoincrement()) @map("id")
+  name           String                                   @map("name")
+  price          Int                                      @map("price")
+  description    String?                                  @map("description")
+  rarity         String?                                  @map("rarity")
+  statInt        Int?                                     @map("stat_int")
+  statStr        Int?                                     @map("stat_str")
+  statDex        Int?                                     @map("stat_dex")
+  statLck        Int?                                     @map("stat_lck")
+  csTag          String?                                  @map("cs_tag")
+  stockQuantity  Int?                                     @map("stock_quantity")
+  isActive       Boolean?                                 @map("is_active")
+  categoryId     String?                                  @map("category_id")
+
+  createdAt      DateTime @default(now())                 @map("created_at")
+  updatedAt      DateTime @updatedAt                      @map("updated_at")
+
+  @@map("items") // 테이블 이름을 snake_case로 하고 싶을 경우
+}

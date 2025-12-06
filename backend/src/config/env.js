@@ -1,9 +1,17 @@
-const dotenv = require('dotenv');
-dotenv.config();
+const dotenv = require("dotenv");
+
+// server.js에서도 .env.dev를 쓰고 있으니, 여기서도 통일
+dotenv.config({ path: ".env.dev" });
 
 module.exports = {
   PORT: process.env.PORT || 3000,
   MONGODB_URI: process.env.MONGODB_URI,
-  JWT_SECRET: process.env.JWT_SECRET || 'dev_secret',
-  REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',
+
+  // JWT 관련 (Access / Refresh 분리)
+  JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || "dev-access-secret",
+  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || "dev-refresh-secret",
+
+
+  REDIS_URL: process.env.REDIS_URL || "redis://localhost:6379",
+  DATABASE_URL: process.env.DATABASE_URL || "",
 };

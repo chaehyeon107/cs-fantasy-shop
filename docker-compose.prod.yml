@@ -15,6 +15,22 @@ services:
     volumes:
       - redis-data:/data
 
+  mysql:
+    image: mysql:8.0
+    container_name: cs-fantasy-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: cs_fantasy_shop
+      MYSQL_USER: shop_user
+      MYSQL_PASSWORD: shop_password
+    volumes:
+      - mysql-data:/var/lib/mysql
+    # prod에서 외부에서 직접 붙을 필요 없으면 ports 안 열어도 됨
+    # 필요하면:
+    # ports:
+    #   - "3306:3306"
+
   app:
     build: .
     container_name: cs-fantasy-app
@@ -26,7 +42,9 @@ services:
     depends_on:
       - mongo
       - redis
+      - mysql
 
 volumes:
   mongo-data:
   redis-data:
+  mysql-data:

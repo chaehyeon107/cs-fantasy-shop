@@ -88,3 +88,7 @@ temp/
 # --------------------------------------------
 # END
 # --------------------------------------------
+backend/cs-fantasy-shop-firebase-adminsdk-fbsvc-019f1203e2.json
+backend/prisma/dev.db
+backend/prisma/*.db
+backend/prisma/*.db-journal
