@@ -12,7 +12,6 @@ const {
 const { sendError } = require("../utils/errorResponse");
 const { initFirebase } = require("../config/firebase");
 const { prisma } = require("../config/prisma");
-const { getKakaoTokens, getKakaoUser } = require("../services/kakao.service");
 
 //
 // 공통: Validation 에러 처리

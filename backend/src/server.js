@@ -6,9 +6,18 @@ const morgan = require("morgan");
 const routes = require("./routes");
 const { connectRedis } = require("./config/redis");
 const errorHandler = require("./middleware/error.middleware");
+const apiResponse = require("./utils/apiResponse");
+const rateLimit = require("express-rate-limit");
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1분
+  max: 100,            // 1분에 100요청
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const app = express();
 const PORT = process.env.PORT || 4000
+
 
 
 // 2️⃣ Redis 연결
@@ -20,11 +29,19 @@ app.use(morgan("dev"));
 app.use(express.json());
 
 // 3️⃣ 라우트
-app.use("/api", routes);
+app.use("/api", apiLimiter, routes);
 
 // 헬스 체크
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok" });
+  return apiResponse.success(
+    res,
+    {
+      status: "ok",
+      version: "1.0.0",
+      timestamp: new Date().toISOString(),
+    },
+    200
+  );
 });
 
 app.get("/auth/kakao/callback", (req, res) => {

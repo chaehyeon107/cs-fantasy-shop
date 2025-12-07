@@ -8,6 +8,18 @@ datasource db {
 }
 
 //
+// ENUM
+//
+enum ItemRarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+  BUGGED
+  SEGFAULT
+}
+
+//
 // User
 // 로그인 + RBAC + 소셜 로그인을 모두 이쪽으로 옮길 예정
 //
@@ -28,25 +40,60 @@ model User {
 }
 
 //
+// Category
+//
+model Category {
+  id          Int       @id @default(autoincrement()) @map("id")
+  name        String                                   @map("name")
+  description String?                                  @map("description")
+  parentId    Int?                                     @map("parent_id")
+
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+
+  items       Item[]
+
+  createdAt   DateTime  @default(now())               @map("created_at")
+  updatedAt   DateTime  @updatedAt                    @map("updated_at")
+
+  @@map("categories")
+  @@index([name])
+}
+
+
+//
 // Item
 //
 model Item {
-  id             Int      @id @default(autoincrement()) @map("id")
-  name           String                                   @map("name")
-  price          Int                                      @map("price")
-  description    String?                                  @map("description")
-  rarity         String?                                  @map("rarity")
-  statInt        Int?                                     @map("stat_int")
-  statStr        Int?                                     @map("stat_str")
-  statDex        Int?                                     @map("stat_dex")
-  statLck        Int?                                     @map("stat_lck")
-  csTag          String?                                  @map("cs_tag")
-  stockQuantity  Int?                                     @map("stock_quantity")
-  isActive       Boolean?                                 @map("is_active")
-  categoryId     String?                                  @map("category_id")
+  id            Int         @id @default(autoincrement()) @map("id")
+  name          String                                      @map("name")
+  price         Int                                         @map("price")
+  description   String?                                     @map("description")
 
-  createdAt      DateTime @default(now())                 @map("created_at")
-  updatedAt      DateTime @updatedAt                      @map("updated_at")
+  rarity        ItemRarity @default(COMMON)                @map("rarity")
+  statInt       Int        @default(0)                     @map("stat_int")
+  statStr       Int        @default(0)                     @map("stat_str")
+  statDex       Int        @default(0)                     @map("stat_dex")
+  statLck       Int        @default(0)                     @map("stat_lck")
 
-  @@map("items") // 테이블 이름을 snake_case로 하고 싶을 경우
+  csTag         String?                                    @map("cs_tag")
+  stockQuantity Int        @default(0)                     @map("stock_quantity")
+  isActive      Boolean     @default(true)                 @map("is_active")
+
+  // 🔗 Category FK (nullable: 카테고리 없는 아이템도 허용)
+  categoryId    Int?                                       @map("category_id")
+  category      Category?  @relation(fields: [categoryId], references: [id])
+
+  createdAt     DateTime    @default(now())                @map("created_at")
+  updatedAt     DateTime    @updatedAt                     @map("updated_at")
+
+  // 🔍 검색/정렬용 인덱스
+  @@index([categoryId])
+  @@index([price])
+  @@index([rarity])
+  @@index([csTag])
+  @@index([createdAt])
+  @@map("items")
 }
+
+
