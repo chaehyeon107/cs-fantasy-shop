@@ -1,4 +1,4 @@
-const prisma = require("../config/prisma");
+const { prisma } = require("../config/prisma");
 
 exports.addToCart = async (userId, itemId, quantity) => {
   const exists = await prisma.cartItem.findUnique({
