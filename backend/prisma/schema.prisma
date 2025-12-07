@@ -24,68 +24,71 @@ enum ItemRarity {
 // 로그인 + RBAC + 소셜 로그인을 모두 이쪽으로 옮길 예정
 //
 model User {
-  id         Int      @id @default(autoincrement()) @map("id")
-  email      String   @unique                      @map("email")
-  password   String                                @map("password")
-  nickname   String                                @map("nickname")
-  role       String   @default("ROLE_USER")         @map("role")
-  provider   String   @default("local")             @map("provider")
-  providerId String?                                @map("provider_id")
+  id         Int     @id @default(autoincrement()) @map("id")
+  email      String  @unique @map("email")
+  password   String  @map("password")
+  nickname   String  @map("nickname")
+  role       String  @default("ROLE_USER") @map("role")
+  provider   String  @default("local") @map("provider")
+  providerId String? @map("provider_id")
 
-  createdAt  DateTime @default(now())               @map("created_at")
-  updatedAt  DateTime @updatedAt                    @map("updated_at")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  CartItem  CartItem[]
 
   @@index([provider, providerId])
-  @@map("users")  // 테이블 이름도 snake_case 추천 (optional)
+  @@map("users") // 테이블 이름도 snake_case 추천 (optional)
 }
 
 //
 // Category
 //
 model Category {
-  id          Int       @id @default(autoincrement()) @map("id")
-  name        String                                   @map("name")
-  description String?                                  @map("description")
-  parentId    Int?                                     @map("parent_id")
+  id          Int     @id @default(autoincrement()) @map("id")
+  name        String  @map("name")
+  description String? @map("description")
+  parentId    Int?    @map("parent_id")
 
-  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryHierarchy")
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
 
-  items       Item[]
+  items     Item[]
+  cartItems CartItem[]
 
-  createdAt   DateTime  @default(now())               @map("created_at")
-  updatedAt   DateTime  @updatedAt                    @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("categories")
   @@index([name])
+  @@map("categories")
 }
-
 
 //
 // Item
 //
 model Item {
-  id            Int         @id @default(autoincrement()) @map("id")
-  name          String                                      @map("name")
-  price         Int                                         @map("price")
-  description   String?                                     @map("description")
+  id          Int     @id @default(autoincrement()) @map("id")
+  name        String  @map("name")
+  price       Int     @map("price")
+  description String? @map("description")
 
-  rarity        ItemRarity @default(COMMON)                @map("rarity")
-  statInt       Int        @default(0)                     @map("stat_int")
-  statStr       Int        @default(0)                     @map("stat_str")
-  statDex       Int        @default(0)                     @map("stat_dex")
-  statLck       Int        @default(0)                     @map("stat_lck")
+  rarity  ItemRarity @default(COMMON) @map("rarity")
+  statInt Int        @default(0) @map("stat_int")
+  statStr Int        @default(0) @map("stat_str")
+  statDex Int        @default(0) @map("stat_dex")
+  statLck Int        @default(0) @map("stat_lck")
 
-  csTag         String?                                    @map("cs_tag")
-  stockQuantity Int        @default(0)                     @map("stock_quantity")
-  isActive      Boolean     @default(true)                 @map("is_active")
+  csTag         String? @map("cs_tag")
+  stockQuantity Int     @default(0) @map("stock_quantity")
+  isActive      Boolean @default(true) @map("is_active")
 
   // 🔗 Category FK (nullable: 카테고리 없는 아이템도 허용)
-  categoryId    Int?                                       @map("category_id")
-  category      Category?  @relation(fields: [categoryId], references: [id])
+  categoryId Int?      @map("category_id")
+  category   Category? @relation(fields: [categoryId], references: [id])
 
-  createdAt     DateTime    @default(now())                @map("created_at")
-  updatedAt     DateTime    @updatedAt                     @map("updated_at")
+  cartItems CartItem[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // 🔍 검색/정렬용 인덱스
   @@index([categoryId])
@@ -96,4 +99,20 @@ model Item {
   @@map("items")
 }
 
+//
+//CartItem
+//
+model CartItem {
+  id       Int @id @default(autoincrement())
+  quantity Int
 
+  userId Int
+  itemId Int
+
+  user User @relation(fields: [userId], references: [id])
+  item Item @relation(fields: [itemId], references: [id])
+
+  createdAt  DateTime  @default(now())
+  Category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId Int?
+}
