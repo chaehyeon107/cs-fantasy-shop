@@ -16,7 +16,7 @@ exports.addToCart = async (req, res, next) => {
 
 exports.getMyCart = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = Number(req.user.id);
 
     const cart = await cartService.getMyCart(userId);
 
