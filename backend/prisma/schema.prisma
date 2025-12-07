@@ -103,16 +103,15 @@ model Item {
 //CartItem
 //
 model CartItem {
-  id       Int @id @default(autoincrement())
-  quantity Int
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  itemId    Int
+  quantity  Int
+  createdAt DateTime @default(now())
 
-  userId Int
-  itemId Int
+  user  User @relation(fields: [userId], references: [id])
+  item  Item @relation(fields: [itemId], references: [id])
 
-  user User @relation(fields: [userId], references: [id])
-  item Item @relation(fields: [itemId], references: [id])
-
-  createdAt  DateTime  @default(now())
-  Category   Category? @relation(fields: [categoryId], references: [id])
-  categoryId Int?
+  @@unique([userId, itemId])   // ✅ 이 줄 추가!!
 }
+
