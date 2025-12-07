@@ -21,7 +21,6 @@ enum ItemRarity {
 
 //
 // User
-// 로그인 + RBAC + 소셜 로그인을 모두 이쪽으로 옮길 예정
 //
 model User {
   id         Int     @id @default(autoincrement()) @map("id")
@@ -34,10 +33,11 @@ model User {
 
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
-  CartItem  CartItem[]
+
+  cartItems CartItem[]
 
   @@index([provider, providerId])
-  @@map("users") // 테이블 이름도 snake_case 추천 (optional)
+  @@map("users")
 }
 
 //
@@ -52,8 +52,7 @@ model Category {
   parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children Category[] @relation("CategoryHierarchy")
 
-  items     Item[]
-  cartItems CartItem[]
+  items Item[]   // ✅ CartItem 직접 연결 제거
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -81,8 +80,8 @@ model Item {
   stockQuantity Int     @default(0) @map("stock_quantity")
   isActive      Boolean @default(true) @map("is_active")
 
-  // 🔗 Category FK (nullable: 카테고리 없는 아이템도 허용)
-  categoryId Int?      @map("category_id")
+  // 🔗 Category FK
+  categoryId Int?       @map("category_id")
   category   Category? @relation(fields: [categoryId], references: [id])
 
   cartItems CartItem[]
@@ -90,7 +89,6 @@ model Item {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  // 🔍 검색/정렬용 인덱스
   @@index([categoryId])
   @@index([price])
   @@index([rarity])
@@ -100,7 +98,7 @@ model Item {
 }
 
 //
-//CartItem
+// CartItem  ✅ 최종 정답 구조
 //
 model CartItem {
   id        Int      @id @default(autoincrement())
@@ -109,9 +107,9 @@ model CartItem {
   quantity  Int
   createdAt DateTime @default(now())
 
-  user  User @relation(fields: [userId], references: [id])
-  item  Item @relation(fields: [itemId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  item Item @relation(fields: [itemId], references: [id])
 
-  @@unique([userId, itemId])   // ✅ 이 줄 추가!!
+  @@unique([userId, itemId])   // ✅ 장바구니 중복 방지 핵심
+  @@map("cart_items")
 }
-
