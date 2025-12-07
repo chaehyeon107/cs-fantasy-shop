@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:8
+    container_name: cs-fantasy-mongo-dev
+    restart: unless-stopped
+    ports:
+      - "27017:27017"      # 로컬에서 mongodb://localhost:27017 접속
+    volumes:
+      - mongo-data-dev:/data/db
+
+  redis:
+    image: redis:8
+    container_name: cs-fantasy-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"        # 로컬에서 redis://localhost:6379 접속
+    volumes:
+      - redis-data-dev:/data
+      
+
+  mysql:
+    image: mysql:8.0
+    container_name: cs-fantasy-mysql-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: cs_fantasy_shop
+      MYSQL_USER: shop_user
+      MYSQL_PASSWORD: shop_password
+    ports:
+      - "3307:3306"        # 로컬에서 mysql://localhost:3307 접속
+    volumes:
+      - mysql-data-dev:/var/lib/mysql
+
+volumes:
+  mongo-data-dev:
+  redis-data-dev:
+  mysql-data-dev:
