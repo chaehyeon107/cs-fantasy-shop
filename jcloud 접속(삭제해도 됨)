@@ -1,0 +1,205 @@
+✅ JCloud 배포 전체 과정 (팀원 전달용 최종 정리본)
+
+✅ 이 매뉴얼은 Express + Prisma + MySQL + Redis + JCloud 포트포워딩 환경 기준이다.
+
+✅ 1️⃣ JCloud 인스턴스 접속 (Xshell)
+
+xshell > 호스트: 113.198.66.68 , 포트번호 19180 > 사용자 이름> 이름: ubuntu> 방법 넘어가서 password 체크 해제 후 public key 체크> 설정> 사용자 키 옆에 ... 클릭 후 가져오기>lcw1.pem >확인>연결
+
+✅ 2️⃣ 기본 패키지 설치
+sudo apt update
+sudo apt install -y git curl
+
+✅ 3️⃣ Node.js 설치 (18버전)
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+
+
+확인:
+
+node -v
+npm -v
+
+✅ 4️⃣ GitHub 프로젝트 가져오기
+git clone https://github.com/chaehyeon107/cs-fantasy-shop
+cd cs-fantasy-shop/backend
+
+✅ 5️⃣ 패키지 설치 (❗ 반드시 backend 폴더에서)
+npm install
+
+✅ ✅ ✅ 여기서부터가 핵심 환경설정 ✅ ✅ ✅
+✅ 6️⃣ JCloud 포트포워딩 개념
+
+JCloud는 다음처럼 고정됨:
+
+내부 포트	외부 접속 포트
+3000	13XXX
+7777 (SSH)	19XXX
+
+👉 그래서 Express 서버는 반드시 3000에서 떠야 함
+
+✅ 7️⃣ server.js 포트 수정 (필수)
+
+nano src/server.js
+
+
+아래처럼 수정:
+
+const PORT = 3000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server listening on 0.0.0.0:${PORT}`);
+});
+
+
+저장:
+Ctrl + O → Enter → Ctrl + X
+
+✅ 8️⃣ 환경변수 파일 생성 (.env.dev)
+nano .env.dev
+
+
+아래 그대로 입력:
+
+PORT=3000
+
+DATABASE_URL="mysql://root:1234@localhost:3306/cs_fantasy_shop"
+
+REDIS_URL=redis://localhost:6379
+
+JWT_SECRET=super_secret_key
+JWT_ACCESS_SECRET=access_secret
+JWT_REFRESH_SECRET=refresh_secret
+
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=admin1234
+
+
+저장:
+Ctrl + O → Enter → Ctrl + X
+
+✅ 9️⃣ Prisma용 .env 파일 복사 (중요)
+cp .env.dev .env
+
+✅ ✅ ✅ MySQL 설치 & 설정 ✅ ✅ ✅
+✅ 🔟 MySQL 설치
+sudo apt install mysql-server -y
+sudo systemctl start mysql
+sudo systemctl enable mysql
+
+
+확인:
+
+sudo systemctl status mysql
+
+
+→ active (running) 나오면 성공 ✅
+
+✅ 1️⃣1️⃣ MySQL root 비밀번호 설정 (1234)
+sudo mysql
+
+ALTER USER 'root'@'localhost'
+IDENTIFIED WITH mysql_native_password
+BY '1234';
+
+FLUSH PRIVILEGES;
+EXIT;
+
+✅ 1️⃣2️⃣ DB 생성
+mysql -u root -p
+
+
+비밀번호: 1234
+
+CREATE DATABASE cs_fantasy_shop;
+SHOW DATABASES;
+EXIT;
+
+✅ ✅ ✅ Prisma 마이그레이션 ✅ ✅ ✅
+✅ 1️⃣3️⃣ Prisma Client 생성 + 테이블 생성
+npx prisma generate
+npx prisma migrate dev --name init
+
+
+✅ 성공하면:
+
+Applying migration `init`
+Generated Prisma Client
+
+✅ ✅ ✅ Redis 설치 ✅ ✅ ✅
+✅ 1️⃣4️⃣ Redis 설치
+sudo apt install redis-server -y
+sudo systemctl start redis
+sudo systemctl enable redis
+
+
+확인:
+
+redis-cli ping
+
+
+응답:
+
+PONG
+
+✅ ✅ ✅ 서버 실행 ✅ ✅ ✅
+✅ 1️⃣5️⃣ 서버 실행
+npm run dev
+
+
+✅ 반드시 이렇게 떠야 정상:
+
+✅ Server listening on 0.0.0.0:3000
+✅ Connected to Redis
+
+✅ ✅ ✅ 외부 접속 테스트 (Postman) ✅ ✅ ✅
+
+JCloud 포트포워딩이 예를 들어:
+
+3000 → 13456
+
+
+이면 외부 접속 주소는:
+
+http://113.xxx.xxx.xxx:13456/health
+
+
+응답 예:
+
+{
+  "status": "ok",
+  "version": "1.0.0"
+}
+
+✅ ✅ ✅ 회원가입 테스트 ✅ ✅ ✅
+POST http://113.xxx.xxx.xxx:13456/api/auth/register
+
+
+Body:
+
+{
+  "email": "test@test.com",
+  "password": "1234",
+  "nickname": "tester"
+}
+
+
+✅ 성공하면:
+
+회원가입 완료
+
+✅ ✅ ✅ 자주 터지는 오류 요약 ✅ ✅ ✅
+에러	원인	해결
+ECONNREFUSED 3000	app.listen 0.0.0.0 안 씀	server.js 수정
+P1012	Prisma가 .env 못 읽음	.env.dev → .env 복사
+P1000	MySQL 비밀번호 틀림	root 1234 재설정
+DB does not exist	DB 생성 안 함	CREATE DATABASE
+✅ ✅ ✅ 최종 핵심 요약 ✅ ✅ ✅
+
+✅ Express 포트 = 3000
+✅ 반드시 app.listen(PORT, "0.0.0.0")
+✅ .env.dev + .env 둘 다 필요
+✅ MySQL root 비번 = 1234
+✅ Redis 반드시 실행
+✅ Prisma migrate 필수
+✅ 외부 접속은 13XXX 포트
