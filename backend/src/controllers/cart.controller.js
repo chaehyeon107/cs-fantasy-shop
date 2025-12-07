@@ -3,7 +3,7 @@ const apiResponse = require("../utils/apiResponse");
 
 exports.addToCart = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = Number(req.user.id);
     const { itemId, quantity } = req.body;
 
     const result = await cartService.addToCart(userId, itemId, quantity);

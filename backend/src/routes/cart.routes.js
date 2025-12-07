@@ -1,9 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const cartController = require("../controllers/cart.controller");
-const authMiddleware = require("../middleware/auth.middleware");
 
-router.use(authMiddleware); // ✅ 로그인 필수
+// ✅ 여기 핵심: authGuard를 정확히 구조분해로 가져온다
+const { authGuard } = require("../middleware/auth.middleware");
+
+// ✅ 로그인 필수
+router.use(authGuard);
 
 router.post("/", cartController.addToCart);        // 담기
 router.get("/", cartController.getMyCart);         // 조회
