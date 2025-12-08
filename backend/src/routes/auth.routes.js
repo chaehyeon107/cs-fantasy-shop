@@ -27,6 +27,8 @@ router.post("/logout", authGuard, logoutValidation, authController.logout);
 // 내 정보 조회 (토큰 검증용)
 router.get("/me", authGuard, authController.me);
 
+router.get("/kakao/callback", authController.kakaoCallback);
+
 // Kakao 소셜 로그인
 router.post("/kakao", kakaoLoginValidation, authController.kakaoLogin);
 
