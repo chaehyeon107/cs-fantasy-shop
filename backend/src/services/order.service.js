@@ -115,14 +115,23 @@ exports.getMyOrderById = (userId, orderId) => {
 };
 
 // 관리자용: 전체 주문 조회
-exports.getAllOrders = () => {
+exports.getAllOrders = async () => {
   return prisma.order.findMany({
+    orderBy: { createdAt: "desc" },
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          email: true,
+          nickname: true,
+          role: true,
+        },
+      },
       orderItems: {
-        include: { item: true },
+        include: {
+          item: true,
+        },
       },
     },
-    orderBy: { createdAt: "desc" },
   });
 };
