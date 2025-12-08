@@ -113,3 +113,43 @@ model CartItem {
   @@unique([userId, itemId])   // ✅ 장바구니 중복 방지 핵심
   @@map("cart_items")
 }
+
+model Order {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  status     String   @default("PAID")  // PENDING | PAID | CANCELLED 등으로 확장 가능
+  totalPrice Int
+
+  createdAt DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id       Int @id @default(autoincrement())
+  orderId  Int
+  itemId   Int
+  quantity Int
+  price    Int   // 주문 당시 가격 스냅샷
+
+  order Order @relation(fields: [orderId], references: [id])
+  item  Item  @relation(fields: [itemId], references: [id])
+
+  @@map("order_items")
+}
+
+model Inventory {
+  id       Int @id @default(autoincrement())
+  userId   Int
+  itemId   Int
+  quantity Int @default(0)
+
+  user User @relation(fields: [userId], references: [id])
+  item Item @relation(fields: [itemId], references: [id])
+
+  @@unique([userId, itemId])
+  @@map("inventories")
+}
