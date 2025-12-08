@@ -269,10 +269,17 @@ exports.kakaoLogin = async (req, res, next) => {
           client_id: process.env.KAKAO_REST_API_KEY,
           redirect_uri: process.env.KAKAO_REDIRECT_URI,
           code,
+          
+          ...(process.env.KAKAO_CLIENT_SECRET && {
+            client_secret: process.env.KAKAO_CLIENT_SECRET,
+          }),
         },
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       }
     );
+
 
     const { access_token } = tokenRes.data;
 
