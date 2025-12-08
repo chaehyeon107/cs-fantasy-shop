@@ -1,5 +1,3 @@
-app.set("trust proxy", 1);
-
 require("dotenv").config({ path: ".env.dev" });
 
 const express = require("express");
@@ -18,6 +16,7 @@ const apiLimiter = rateLimit({
 });
 
 const app = express();
+app.set("trust proxy", 1);
 const PORT = process.env.PORT || 4000
 
 
