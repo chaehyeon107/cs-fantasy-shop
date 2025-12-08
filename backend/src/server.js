@@ -1,3 +1,5 @@
+app.set("trust proxy", 1);
+
 require("dotenv").config({ path: ".env.dev" });
 
 const express = require("express");
