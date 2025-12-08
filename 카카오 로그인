@@ -1,0 +1,52 @@
+
+
+## ✅ Kakao Social Login Setup Guide
+
+### 1️⃣ Kakao Developers App 생성
+1. https://developers.kakao.com 접속
+2. 내 애플리케이션 → 애플리케이션 추가
+3. 앱 이름, 사업자 정보 입력(저같은 경우 앱 이름: cs-fantasy-shop, 사업자: 개인, 카테고리: 쇼핑)
+
+
+### 2️⃣ REST API 키 확인
+앱> 플랫폼  → REST API 키 복사
+
+.env에 등록:
+
+KAKAO_REST_API_KEY=여기에_REST_API_키
+
+### 3️⃣ Redirect URI 등록
+앱>플랫폼 키> REST API 키>카카오 로그인 Redirect URI 등록:http://113.198.66.68:13180/api/auth/kakao
+
+###  Client Secret 
+앱>플랫폼 키>REST API 키> 밑에 스크롤 하면 클라이언트 시크릿 코드 복붙 후 env에 붙여넣기
+.env에 추가:
+
+KAKAO_CLIENT_SECRET=생성한_값
+
+>>KAKAO_REST_API_KEY=5aae85f9d997285ff87c4cf0e0e2bf7b
+KAKAO_REDIRECT_URI=http://113.198.66.68:13180/api/auth/kakao
+KAKAO_CLIENT_SECRET=Oe1GmZTK8fwsOR4xJGfCEdL34Kqln8bY<< 제 거 예시입니다! 
+
+### 5️⃣ 서버 실행
+```bash
+npm install
+npm run dev
+
+6️⃣ 카카오 로그인 테스트 (브라우저)
+
+https://kauth.kakao.com/oauth/authorize?client_id=REST_API_KEY&redirect_uri=http://113.198.66.68:13180/api/auth/kakao&response_type=code
+REST_API_KEY 부분에 본인 거 붙여넣기
+
+✅ 로그인 성공 시 브라우저에서 JWT JSON 출력됨
+
+7️⃣ Postman 테스트
+로그인 확인 : GET http://113.198.66.68:13180/api/auth/me, 헤더 Authorization: Bearer ACCESS_TOKEN(본인 accessToken)
+
+로그아웃:  POST http://113.198.66.68:13180/api/auth/logout, 헤더 Authorization: Bearer ACCESS_TOKEN
+Body:
+{
+  "refreshToken": "REFRESH_TOKEN"
+}
+
+Authorization: Bearer ACCESS_TOKEN
