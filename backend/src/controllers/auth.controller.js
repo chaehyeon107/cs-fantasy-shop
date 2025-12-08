@@ -252,7 +252,13 @@ exports.kakaoLogin = async (req, res, next) => {
     const invalid = handleValidation(req, res);
     if (invalid) return;
 
-    const { code } = req.body;
+    const code = req.body?.code || req.query?.code;
+
+    if (!code) {
+      return sendError(res, req, "AUTH_INVALID_INPUT", {
+        details: { message: "Kakao authorization code not found" },
+      });
+    }
 
     const tokenRes = await axios.post(
       "https://kauth.kakao.com/oauth/token",
