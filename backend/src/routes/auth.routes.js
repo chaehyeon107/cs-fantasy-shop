@@ -31,7 +31,7 @@ router.get("/kakao/callback", authController.kakaoCallback);
 
 // Kakao 소셜 로그인
 router.post("/kakao", kakaoLoginValidation, authController.kakaoLogin);
-
+router.get("/kakao", authController.kakaoLogin);
 // Firebase 소셜 로그인
 router.post("/firebase", firebaseLoginValidation, authController.firebaseLogin);
 
