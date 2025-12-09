@@ -105,3 +105,92 @@ exports.deleteItem = async (id) => {
     throw err;
   }
 };
+
+exports.getPopularItems = async (limit) => {
+  const result = await prisma.orderItem.groupBy({
+    by: ["itemId"],
+    _sum: {
+      quantity: true,
+    },
+    orderBy: {
+      _sum: {
+        quantity: "desc",
+      },
+    },
+    take: limit,
+  });
+
+  const items = await prisma.item.findMany({
+    where: {
+      id: { in: result.map(r => r.itemId) },
+    },
+  });
+
+  return result.map(r => {
+    const item = items.find(i => i.id === r.itemId);
+    return {
+      itemId: r.itemId,
+      name: item?.name,
+      totalSold: r._sum.quantity,
+      price: item?.price,
+    };
+  });
+};
+
+exports.getTopUsers = async (limit) => {
+  const result = await prisma.order.groupBy({
+    by: ["userId"],
+    _sum: {
+      totalPrice: true,
+    },
+    orderBy: {
+      _sum: {
+        totalPrice: "desc",
+      },
+    },
+    take: limit,
+  });
+
+  const users = await prisma.user.findMany({
+    where: {
+      id: { in: result.map(r => r.userId) },
+    },
+  });
+
+  return result.map(r => {
+    const user = users.find(u => u.id === r.userId);
+    return {
+      userId: r.userId,
+      email: user?.email,
+      nickname: user?.nickname,
+      totalSpent: r._sum.totalPrice,
+    };
+  });
+};
+
+exports.getOrdersSummary = async (from, to) => {
+  return prisma.order.findMany({
+    where: {
+      createdAt: {
+        gte: new Date(from),
+        lte: new Date(to),
+      },
+    },
+    select: {
+      id: true,
+      userId: true,
+      status: true,
+      totalPrice: true,
+      createdAt: true,
+      user: {
+        select: {
+          email: true,
+          nickname: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+};

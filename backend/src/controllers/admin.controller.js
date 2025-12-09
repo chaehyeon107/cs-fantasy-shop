@@ -73,3 +73,36 @@ exports.deleteItem = async (req, res, next) => {
     next(err);
   }
 };
+
+// ✅ 인기 아이템 TOP
+exports.getPopularItems = async (req, res, next) => {
+  try {
+    const limit = Number(req.query.limit) || 10;
+    const result = await adminService.getPopularItems(limit);
+    return apiResponse.success(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ✅ 구매 상위 유저 TOP
+exports.getTopUsers = async (req, res, next) => {
+  try {
+    const limit = Number(req.query.limit) || 10;
+    const result = await adminService.getTopUsers(limit);
+    return apiResponse.success(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ✅ 기간별 주문 요약
+exports.getOrdersSummary = async (req, res, next) => {
+  try {
+    const { from, to } = req.query;
+    const result = await adminService.getOrdersSummary(from, to);
+    return apiResponse.success(res, result);
+  } catch (err) {
+    next(err);
+  }
+};

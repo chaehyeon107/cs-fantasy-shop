@@ -24,4 +24,8 @@ router.delete("/items/:id", itemIdParamValidation, adminController.deleteItem);
 // ✅ 관리자 주문 전체 조회
 router.get("/orders", orderController.getAllOrders);
 
+router.get("/stats/popular-items", adminController.getPopularItems);
+router.get("/stats/top-users", adminController.getTopUsers);
+router.get("/stats/orders-summary", adminController.getOrdersSummary);
+
 module.exports = router;
