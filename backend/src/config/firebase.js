@@ -11,7 +11,7 @@ function initFirebase() {
 
   // 2) 설정 안 했으면 기본값 (backend/firebase-service-account.json)
   if (!serviceAccountPath) {
-    serviceAccountPath = path.join(__dirname, "..", "..", "cs-fantasy-shop-firebase-adminsdk-fbsvc-019f1203e2.json");
+    serviceAccountPath = path.join(__dirname, "..", "..", "cs-fantasy-shop-1990b-firebase-adminsdk-fbsvc-c0cb3f60e2.json");
   } else {
     // env는 보통 backend 기준 상대경로니까 절대경로로 변환
     serviceAccountPath = path.resolve(process.cwd(), serviceAccountPath);
