@@ -8,31 +8,32 @@ const { connectRedis } = require("./config/redis");
 const errorHandler = require("./middleware/error.middleware");
 const apiResponse = require("./utils/apiResponse");
 const rateLimit = require("express-rate-limit");
+
+const app = express();
+app.set("trust proxy", 1);
+
+const PORT = process.env.PORT || 4000;
+
+// ✅ Rate Limit
 const apiLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1분
-  max: 100,            // 1분에 100요청
+  windowMs: 60 * 1000,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-const app = express();
-app.set("trust proxy", 1);
-const PORT = process.env.PORT || 4000
-
-
-
-// 2️⃣ Redis 연결
+// ✅ Redis 연결
 connectRedis();
 
-// 미들웨어
+// ✅ 공통 미들웨어
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 
-// 3️⃣ 라우트
+// ✅ API 라우트 (여기서 auth 포함 전부 처리)
 app.use("/api", apiLimiter, routes);
 
-// 헬스 체크
+// ✅ 헬스 체크
 app.get("/health", (req, res) => {
   return apiResponse.success(
     res,
@@ -45,6 +46,7 @@ app.get("/health", (req, res) => {
   );
 });
 
+// ✅ ✅ ✅ Kakao OAuth code 콜백 (Redirect URI 전용)
 app.get("/auth/kakao/callback", (req, res) => {
   const code = req.query.code;
 
@@ -61,11 +63,10 @@ code = ${code || "(code 없음)"}
   `);
 });
 
-
-// 전역 에러 핸들러 등록
+// ✅ 전역 에러 핸들러 (항상 맨 마지막!)
 app.use(errorHandler);
 
+// ✅ 서버는 단 한 번만 실행
 app.listen(PORT, () => {
   console.log(`✅ Server listening on port ${PORT}`);
 });
-
