@@ -34,7 +34,7 @@ exports.getMyOrderById = async (req, res, next) => {
     const order = await orderService.getMyOrderById(userId, orderId);
 
     if (!order) {
-      return apiResponse.fail(res, "주문을 찾을 수 없습니다.", 404);
+      return apiResponse.error(res, "주문이 존재하지 않습니다.", 404);
     }
 
     return apiResponse.success(res, order);
