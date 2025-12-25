@@ -1,50 +1,34 @@
 version: "3.9"
 
 services:
-  mongo:
-    image: mongo:7
-    container_name: cs-fantasy-mongo
-    restart: unless-stopped
+  backend:
+    build: .
+    container_name: cs-fantasy-backend
+    ports:
+      - "13180:3000"
+    env_file:
+      - .env.prod
+    depends_on:
+      - mysql
+      - redis
+
+  mysql:
+    image: mysql:8
+    container_name: cs-fantasy-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: fantasy
+    ports:
+      - "3306:3306"
     volumes:
-      - mongo-data:/data/db
+      - mysql-data:/var/lib/mysql
 
   redis:
     image: redis:7
     container_name: cs-fantasy-redis
-    restart: unless-stopped
-    volumes:
-      - redis-data:/data
-
-  mysql:
-    image: mysql:8.0
-    container_name: cs-fantasy-mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: cs_fantasy_shop
-      MYSQL_USER: shop_user
-      MYSQL_PASSWORD: shop_password
-    volumes:
-      - mysql-data:/var/lib/mysql
-    # prod에서 외부에서 직접 붙을 필요 없으면 ports 안 열어도 됨
-    # 필요하면:
-    # ports:
-    #   - "3306:3306"
-
-  app:
-    build: .
-    container_name: cs-fantasy-app
-    restart: unless-stopped
     ports:
-      - "3000:3000"
-    env_file:
-      - .env.prod         # 🔥 배포용 환경변수 파일
-    depends_on:
-      - mongo
-      - redis
-      - mysql
+      - "6379:6379"
 
 volumes:
-  mongo-data:
-  redis-data:
   mysql-data:
