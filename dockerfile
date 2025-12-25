@@ -1,20 +1,32 @@
 FROM node:18-alpine
 
+# 앱 실행 디렉토리
 WORKDIR /app
 
-# 의존성
-COPY package*.json ./
+# -------------------------
+# 1️⃣ 의존성 설치
+# -------------------------
+# backend/package.json만 먼저 복사 (캐시 최적화)
+COPY backend/package*.json ./
 RUN npm install
 
-# 소스 복사
-COPY . .
+# -------------------------
+# 2️⃣ 소스 코드 복사
+# -------------------------
+COPY backend/ .
 
-# Prisma
+# -------------------------
+# 3️⃣ Prisma
+# -------------------------
 RUN npx prisma generate
 
-# 빌드
+# -------------------------
+# 4️⃣ 빌드
+# -------------------------
 RUN npm run build
 
-EXPOSE 8080
-
+# -------------------------
+# 5️⃣ 실행
+# -------------------------
+EXPOSE 3000
 CMD ["npm", "run", "start"]
