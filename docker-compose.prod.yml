@@ -5,7 +5,7 @@ services:
     build: .
     container_name: cs-fantasy-backend
     ports:
-      - "13180:3000"
+      - "13210:3000"
     env_file:
       - .env.prod
     depends_on:
