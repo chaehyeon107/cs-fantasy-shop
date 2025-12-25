@@ -19,8 +19,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: fantasy
-    ports:
-      - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
 
