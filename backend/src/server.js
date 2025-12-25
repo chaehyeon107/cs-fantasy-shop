@@ -1,4 +1,4 @@
-require("dotenv").config({ path: ".env.dev" });
+require("dotenv").config(); // 딱 한 번
 
 const express = require("express");
 const cors = require("cors");
