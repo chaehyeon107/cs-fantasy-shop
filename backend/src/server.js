@@ -9,6 +9,10 @@ const errorHandler = require("./middleware/error.middleware");
 const apiResponse = require("./utils/apiResponse");
 const rateLimit = require("express-rate-limit");
 
+// ✅ Swagger 추가
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger/swagger");
+
 const app = express();
 app.set("trust proxy", 1);
 
@@ -30,7 +34,10 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 
-// ✅ API 라우트 (여기서 auth 포함 전부 처리)
+// ✅ Swagger 문서
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// ✅ API 라우트
 app.use("/api", apiLimiter, routes);
 
 // ✅ 헬스 체크
@@ -46,7 +53,7 @@ app.get("/health", (req, res) => {
   );
 });
 
-// ✅ ✅ ✅ Kakao OAuth code 콜백 (Redirect URI 전용)
+// ✅ Kakao OAuth callback
 app.get("/auth/kakao/callback", (req, res) => {
   const code = req.query.code;
 
@@ -63,10 +70,11 @@ code = ${code || "(code 없음)"}
   `);
 });
 
-// ✅ 전역 에러 핸들러 (항상 맨 마지막!)
+// ✅ 전역 에러 핸들러
 app.use(errorHandler);
 
-// ✅ 서버는 단 한 번만 실행
+// ✅ 서버 실행
 app.listen(PORT, () => {
   console.log(`✅ Server listening on port ${PORT}`);
+  console.log(`📘 Swagger UI available at /docs`);
 });
