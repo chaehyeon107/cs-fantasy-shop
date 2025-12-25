@@ -74,7 +74,8 @@ code = ${code || "(code 없음)"}
 app.use(errorHandler);
 
 // ✅ 서버 실행
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server listening on port ${PORT}`);
   console.log(`📘 Swagger UI available at /docs`);
 });
+
