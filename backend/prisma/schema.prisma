@@ -87,7 +87,6 @@ model Item {
   category   Category? @relation(fields: [categoryId], references: [id])
 
   cartItems CartItem[]
-  orders      Order[]
   inventories Inventory[]
 
   createdAt DateTime @default(now()) @map("created_at")
