@@ -1,8 +1,7 @@
-FROM node:20-alpine
+FROM node:20-bullseye-slim
 
 WORKDIR /app
 
-# ✅ backend/ 제거 (이미 backend가 컨텍스트)
 COPY package*.json ./
 RUN npm install --omit=dev
 
