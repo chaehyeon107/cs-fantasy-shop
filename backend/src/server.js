@@ -1,4 +1,4 @@
-require("dotenv").config(); // 딱 한 번
+const { PORT } = require("./config/env");
 
 const express = require("express");
 const cors = require("cors");
@@ -16,7 +16,6 @@ const swaggerSpec = require("./swagger/swagger");
 const app = express();
 app.set("trust proxy", 1);
 
-const PORT = process.env.PORT || 4000;
 
 // ✅ Rate Limit
 const apiLimiter = rateLimit({

@@ -1,7 +1,7 @@
 // backend/scripts/createAdmin.js
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcrypt");
-require("dotenv").config({ path: ".env.dev" });
+require("dotenv").config({ path: ".env" });
 
 const prisma = new PrismaClient();
 

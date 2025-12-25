@@ -1,3 +1,7 @@
+const dotenv = require("dotenv");
+
+dotenv.config({ path: process.env.ENV_FILE || ".env" });
+
 module.exports = {
   // 서버 포트 (PORT는 예외적으로 fallback 허용)
   PORT: process.env.PORT || 3000,
