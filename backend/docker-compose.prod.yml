@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  backend:
+    build: .
+    container_name: cs-fantasy-backend
+    ports:
+      - "13210:3000"
+    env_file:
+      - .env.prod
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  mysql:
+    image: mysql:8
+    container_name: cs-fantasy-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: cs_fantasy_shop
+      MYSQL_USER: shop_user
+      MYSQL_PASSWORD: shop_password
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: cs-fantasy-redis
+    restart: always
+
+volumes:
+  mysql-data:
