@@ -25,4 +25,4 @@ RUN npx prisma generate
 # 5️⃣ 실행
 # -------------------------
 EXPOSE 3000
-CMD ["npm", "run", "start"]
+CMD ["node", "src/server.js"]
