@@ -29,17 +29,13 @@ const options = {
         },
       },
     },
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
+    security: [{ bearerAuth: [] }],
   },
 
-  // ⭐⭐⭐ 핵심 수정 포인트 ⭐⭐⭐
+  // ⭐⭐⭐ 여기만 바뀜 ⭐⭐⭐
   apis: [
-    path.join(__dirname, "./routes/*.js"),
-    path.join(__dirname, "./routes/**/*.js"),
+    path.join(__dirname, "../routes/*.js"),
+    path.join(__dirname, "../routes/**/*.js"),
   ],
 };
 
