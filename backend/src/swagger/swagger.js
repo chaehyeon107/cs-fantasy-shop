@@ -1,4 +1,5 @@
 const swaggerJSDoc = require("swagger-jsdoc");
+const path = require("path");
 
 const options = {
   definition: {
@@ -35,8 +36,11 @@ const options = {
     ],
   },
 
-  // ⭐ 여기 중요: Swagger 주석을 읽을 파일들
-  apis: ["./routes/**/*.js"],
+  // ⭐⭐⭐ 핵심 수정 포인트 ⭐⭐⭐
+  apis: [
+    path.join(__dirname, "./routes/*.js"),
+    path.join(__dirname, "./routes/**/*.js"),
+  ],
 };
 
 module.exports = swaggerJSDoc(options);
