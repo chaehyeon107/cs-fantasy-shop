@@ -69,7 +69,7 @@ cp .env.example .env
 * 이때 `.env` 파일은 backend 폴더에 위치시킨다.
 
 ```bash
-cd cs-fantasy-shop
+cd backend
 touch cs-fantasy-shop-1990b-firebase-adminsdk-fbsvc-c0cb3f60e2.json
 ```
 
