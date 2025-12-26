@@ -100,6 +100,7 @@ docker-compose -f docker-compose.prod.yml up -d --build
 * MySQL(cs-fantasy-mysql)
 * Redis(cs-fantasy-redis)
   컨테이너가 함께 기동된다.
+* 오류 발생 시 docker-compose.prod.yml 파일을 backend > 루트 폴더로 옮겨야한다. 
 
 ---
 
@@ -194,6 +195,15 @@ npx prisma generate
 | ADMIN | [admin@example.com](mailto:admin@example.com) | admin1234 | 관리자 권한 |
 
 ---
+
+## 9. DB 연결 정보 (서버용)
+
+| 항목       | 값                            |
+| -------- | ---------------------------- |
+| Host     | `localhost` |
+| Port     | `3306`                       |
+| Database | `shop_password`                 |
+| User     | `shop_user`                     |
 
 
 ---
