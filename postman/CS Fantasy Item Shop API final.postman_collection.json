@@ -1,0 +1,3428 @@
+{
+	"info": {
+		"_postman_id": "d35ebfa6-8f81-47e6-96cf-2e48e04bc6aa",
+		"name": "CS Fantasy Item Shop API final",
+		"description": "컴공 판타지 아이템 쇼핑몰 API - 응답 예시 포함 강화 버전",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "50427518",
+		"_collection_link": "https://esther10777-8409077.postman.co/workspace/%EA%B9%80%EC%B1%84%ED%98%84's-Workspace~0ab5ed72-97bb-44ab-8dc9-87cb28ea7e5a/collection/50448578-d35ebfa6-8f81-47e6-96cf-2e48e04bc6aa?action=share&source=collection_link&creator=50427518"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status is 201 or error\", function () {\r",
+									"  pm.expect([201, 400, 409]).to.include(pm.response.code);\r",
+									"});\r",
+									"\r",
+									"let json;\r",
+									"try {\r",
+									"  json = pm.response.json();\r",
+									"} catch (e) {\r",
+									"  console.log(\"⚠️ 응답 JSON 파싱 실패:\", e);\r",
+									"  return;\r",
+									"}\r",
+									"\r",
+									"// 1) 회원가입 성공 (201)\r",
+									"if (pm.response.code === 201 && json.success && json.data) {\r",
+									"  const email = json.data.email;\r",
+									"  const nickname = json.data.nickname;\r",
+									"\r",
+									"  console.log(\"✅ 회원가입 성공:\", email, nickname);\r",
+									"\r",
+									"  // 원하는 경우 자동으로 환경변수 설정\r",
+									"  pm.environment.set(\"adminEmail\", email);\r",
+									"  pm.environment.set(\"adminPassword\", pm.variables.get(\"registerPassword\") || \"admin1234\");\r",
+									"\r",
+									"  pm.test(\"User role should be ROLE_USER initially\", function () {\r",
+									"    pm.expect(json.data.role).to.eql(\"ROLE_USER\");\r",
+									"  });\r",
+									"\r",
+									"  console.log(\"ℹ️ 관리자 승격을 위해 DB에서 role을 ROLE_ADMIN으로 수동 업데이트하세요.\");\r",
+									"\r",
+									"  return;\r",
+									"}\r",
+									"\r",
+									"// 2) 이메일 중복 (409)\r",
+									"if (pm.response.code === 409 && json.code === \"AUTH_EMAIL_EXISTS\") {\r",
+									"  console.log(\"⚠️ 이미 존재하는 이메일입니다. 다른 이메일로 다시 시도하세요.\");\r",
+									"  return;\r",
+									"}\r",
+									"\r",
+									"// 3) 검증 실패 (400)\r",
+									"if (pm.response.code === 400) {\r",
+									"  console.log(\"❌ 필드 검증 실패:\", json.details || json.message);\r",
+									"  return;\r",
+									"}\r",
+									"\r",
+									"console.log(\"📌 기타 응답:\", json);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user2@user.com\",\n    \"password\": \"12345678\",\n    \"nickname\": \"유저\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "201 Created - Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"user1@example.com\",\n  \"password\": \"password123\",\n  \"nickname\": \"유저1\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"register"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 1,\n    \"email\": \"user1@example.com\",\n    \"nickname\": \"유저1\",\n    \"role\": \"ROLE_USER\"\n  }\n}"
+						},
+						{
+							"name": "409 Conflict - Email Exists",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"user1@example.com\",\n  \"password\": \"password123\",\n  \"nickname\": \"유저1\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"register"
+									]
+								}
+							},
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"AUTH_EMAIL_EXISTS\",\n    \"message\": \"Email already exists\"\n  }\n}"
+						},
+						{
+							"name": "400 Bad Request - Validation Failed",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"not-an-email\",\n  \"password\": \"123\",\n  \"nickname\": \"\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"register"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"VALIDATION_FAILED\",\n    \"message\": \"Validation failed\",\n    \"details\": [\n      { \"param\": \"email\", \"msg\": \"INVALID_EMAIL\" },\n      { \"param\": \"password\", \"msg\": \"PASSWORD_TOO_SHORT\" },\n      { \"param\": \"nickname\", \"msg\": \"NICKNAME_LENGTH_INVALID\" }\n    ]\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"try {\r",
+									"  const json = pm.response.json();\r",
+									"\r",
+									"  if (json.success && json.data) {\r",
+									"    const data = json.data;\r",
+									"\r",
+									"    if (data.accessToken) {\r",
+									"      pm.environment.set(\"accessToken\", data.accessToken);\r",
+									"      console.log(\"[LOGIN] set accessToken\");\r",
+									"    }\r",
+									"    if (data.refreshToken) {\r",
+									"      pm.environment.set(\"refreshToken\", data.refreshToken);\r",
+									"      console.log(\"[LOGIN] set refreshToken\");\r",
+									"    }\r",
+									"\r",
+									"    if (data.user && data.user.id) {\r",
+									"      pm.environment.set(\"userId\", data.user.id.toString());\r",
+									"      console.log(\"[LOGIN] set userId\");\r",
+									"    }\r",
+									"  } else {\r",
+									"    console.warn(\"[LOGIN] Login failed or unexpected response structure:\", json);\r",
+									"  }\r",
+									"} catch (e) {\r",
+									"  console.error(\"[LOGIN] Failed to parse JSON:\", e);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\", // \"user2@user.com\",\n  \"password\": \"admin1234\" // \"12345678\"\n}\n"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK - Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"user1@example.com\",\n  \"password\": \"password123\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": 1,\n      \"email\": \"user1@example.com\",\n      \"nickname\": \"유저1\",\n      \"role\": \"ROLE_USER\"\n    },\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n  }\n}"
+						},
+						{
+							"name": "401 Unauthorized - Invalid Credentials",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"user1@example.com\",\n  \"password\": \"wrongpass\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"login"
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"AUTH_INVALID_CREDENTIALS\",\n    \"message\": \"Invalid credentials\"\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 401\", function () {\r",
+									"  pm.expect([200, 401]).to.include(pm.response.code);\r",
+									"});\r",
+									"\r",
+									"try {\r",
+									"  const json = pm.response.json();\r",
+									"\r",
+									"  if (pm.response.code === 200 && json.success && json.data) {\r",
+									"    const data = json.data;\r",
+									"\r",
+									"    if (data.accessToken) {\r",
+									"      pm.environment.set(\"accessToken\", data.accessToken);\r",
+									"      console.log(\"[REFRESH] updated accessToken\");\r",
+									"    }\r",
+									"    if (data.refreshToken) {\r",
+									"      pm.environment.set(\"refreshToken\", data.refreshToken);\r",
+									"      console.log(\"[REFRESH] updated refreshToken\");\r",
+									"    }\r",
+									"  } else {\r",
+									"    console.warn(\"[REFRESH] refresh failed or unexpected response:\", json);\r",
+									"  }\r",
+									"} catch (e) {\r",
+									"  console.error(\"[REFRESH] Failed to parse JSON:\", e);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"refreshToken\": \"{{refreshToken}}\"\r\n}\r\n"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK - New Tokens Issued",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/refresh",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"refresh"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"accessToken\": \"new-access-token...\",\n    \"refreshToken\": \"new-refresh-token...\"\n  }\n}"
+						},
+						{
+							"name": "401 Unauthorized - Invalid Refresh Token",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refreshToken\": \"invalid-refresh-token\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/refresh",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"refresh"
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"AUTH_REFRESH_INVALID\",\n    \"message\": \"Invalid refresh token\"\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 401\", function () {\r",
+									"  pm.expect([200, 401]).to.include(pm.response.code);\r",
+									"});\r",
+									"\r",
+									"try {\r",
+									"  const json = pm.response.json();\r",
+									"\r",
+									"  if (pm.response.code === 200 && json.success) {\r",
+									"    // 로그아웃 성공하면 토큰들 삭제\r",
+									"    pm.environment.unset(\"accessToken\");\r",
+									"    pm.environment.unset(\"refreshToken\");\r",
+									"    console.log(\"[LOGOUT] cleared accessToken & refreshToken\");\r",
+									"  } else {\r",
+									"    console.warn(\"[LOGOUT] logout failed or unexpected response:\", json);\r",
+									"  }\r",
+									"} catch (e) {\r",
+									"  console.error(\"[LOGOUT] Failed to parse JSON:\", e);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwiaWF0IjoxNzY1MTQzMDkyLCJleHAiOjE3NjU3NDc4OTJ9.MQ0dlQpbUoiBX6meXjxExV_Mv89UpN63B08m80Ufaeg",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK - Logged Out",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/logout",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"loggedOut\": true\n  }\n}"
+						},
+						{
+							"name": "401 Unauthorized - No Access Token",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/logout",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"AUTH_NO_TOKEN\",\n    \"message\": \"Authorization header missing\"\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Me (Profile)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ===============================\r",
+									"// 1) 상태 코드 검사\r",
+									"// ===============================\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// ===============================\r",
+									"// 2) JSON 파싱\r",
+									"// ===============================\r",
+									"let json;\r",
+									"pm.test(\"Response is valid JSON\", function () {\r",
+									"  json = pm.response.json();\r",
+									"  pm.expect(json).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"// ===============================\r",
+									"// 3) 공통 응답 포맷 검사\r",
+									"// ===============================\r",
+									"pm.test(\"Response has success=true and data object\", function () {\r",
+									"  pm.expect(json).to.have.property(\"success\", true);\r",
+									"  pm.expect(json).to.have.property(\"data\");\r",
+									"  pm.expect(json.data).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"// ===============================\r",
+									"// 4) 유저 필드 검사\r",
+									"// ===============================\r",
+									"pm.test(\"User data has id, email, nickname, role, createdAt\", function () {\r",
+									"  const data = json.data;\r",
+									"\r",
+									"  pm.expect(data).to.have.property(\"id\");\r",
+									"  pm.expect(data).to.have.property(\"email\");\r",
+									"  pm.expect(data).to.have.property(\"nickname\");\r",
+									"  pm.expect(data).to.have.property(\"role\");\r",
+									"  pm.expect(data).to.have.property(\"createdAt\");\r",
+									"\r",
+									"  pm.expect(data.id).to.be.a(\"number\");\r",
+									"  pm.expect(data.email).to.be.a(\"string\");\r",
+									"  pm.expect(data.nickname).to.be.a(\"string\");\r",
+									"  pm.expect(data.role).to.be.a(\"string\");\r",
+									"  pm.expect(data.createdAt).to.be.a(\"string\");\r",
+									"});\r",
+									"\r",
+									"// ===============================\r",
+									"// 5) 환경 변수 저장\r",
+									"// ===============================\r",
+									"pm.test(\"Save user info to environment\", function () {\r",
+									"  const data = json.data;\r",
+									"\r",
+									"  pm.environment.set(\"userId\", data.id.toString());\r",
+									"  pm.environment.set(\"userEmail\", data.email);\r",
+									"  pm.environment.set(\"userNickname\", data.nickname);\r",
+									"  pm.environment.set(\"userRole\", data.role);\r",
+									"\r",
+									"  console.log(\"[ME] userId/userEmail/userNickname/userRole saved to env\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwiaWF0IjoxNzY1MTQzMDkyLCJleHAiOjE3NjU3NDc4OTJ9.MQ0dlQpbUoiBX6meXjxExV_Mv89UpN63B08m80Ufaeg",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK - User Info",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/me",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"me"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 1,\n    \"email\": \"user1@example.com\",\n    \"nickname\": \"유저1\",\n    \"role\": \"ROLE_USER\",\n    \"createdAt\": \"2025-12-05T14:32:23.484Z\"\n  }\n}"
+						},
+						{
+							"name": "401 Unauthorized - Invalid Token",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/me",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"me"
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"AUTH_NO_TOKEN\",\n    \"message\": \"Authorization header missing\"\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "kakao signup",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": ""
+						},
+						"description": "1.웹브라우저에 아래 주소 입력\n\n[https://kauth.kakao.com/oauth/authorize?client_id=5aae85f9d997285ff87c4cf0e0e2bf7b&amp;redirect_uri=http://113.198.66.68:13180/auth/kakao/callback&amp;response_type=code](https://kauth.kakao.com/oauth/authorize?client_id=5aae85f9d997285ff87c4cf0e0e2bf7b&redirect_uri=http://113.198.66.68:13180/auth/kakao/callback&response_type=codeEndFragment)\n\n2\\. 본인 계정으로 카카오 로그인\n\n3\\. <사이트에 연결할없음> 창이 나오면, 그 창의 주소에 있는 code를 복사\n\n예시)\n\n[http://113.198.66.68:13180/auth/kakao/callback?code=4XUoaowRjHIXOz4CT46z5WGoHr-TGybZP7j9Y5VUCWETNcZm-jmRFgAAAAQKFxKWAAABm1jfPW22W8wW6V7rJg](http://113.198.66.68:13180/auth/kakao/callback?code=4XUoaowRjHIXOz4CT46z5WGoHr-TGybZP7j9Y5VUCWETNcZm-jmRFgAAAAQKFxKWAAABm1jfPW22W8wW6V7rJg)\n\n위 주소의 code= 오른쪽 문자열 [4XUoaowRjHIXOz4CT46z5WGoHr-TGybZP7j9Y5VUCWETNcZm-jmRFgAAAAQKFxKWAAABm1jfPW22W8wW6V7rJg ](http://113.198.66.68:13180/auth/kakao/callback?code=4XUoaowRjHIXOz4CT46z5WGoHr-TGybZP7j9Y5VUCWETNcZm-jmRFgAAAAQKFxKWAAABm1jfPW22W8wW6V7rJg) 복사\n\n4\\. POST Kakao Login 탭으로 이동해서 body 탭의 \"code\" 부분에 문자열\"\"로 붙여넣기\n\n예시)\n\n{ \"code\": \"9NyqkaxNnbcxbAtoE-AVhOc6_aaI7062sszSd2nUeWjUZUK-YxAQugAAAAQKFwvXAAABm1ahu-zdCc_9be4aqQ\"}"
+					},
+					"response": []
+				},
+				{
+					"name": "firebase signup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ✅ 1. 상태 코드 검사 (200 or 201 허용)\r",
+									"pm.test(\"Status code is 200 or 201\", function () {\r",
+									"  pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+									"});\r",
+									"\r",
+									"// ✅ 2. JSON 파싱\r",
+									"let json;\r",
+									"pm.test(\"Response is valid JSON\", function () {\r",
+									"  json = pm.response.json();\r",
+									"  pm.expect(json).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"// ✅ 3. 필수 필드 존재 여부 검사\r",
+									"pm.test(\"Response has idToken, email, refreshToken, localId\", function () {\r",
+									"  pm.expect(json).to.have.property(\"idToken\");\r",
+									"  pm.expect(json).to.have.property(\"email\");\r",
+									"  pm.expect(json).to.have.property(\"refreshToken\");\r",
+									"  pm.expect(json).to.have.property(\"localId\");\r",
+									"\r",
+									"  pm.expect(json.idToken).to.be.a(\"string\");\r",
+									"  pm.expect(json.email).to.be.a(\"string\");\r",
+									"  pm.expect(json.refreshToken).to.be.a(\"string\");\r",
+									"  pm.expect(json.localId).to.be.a(\"string\");\r",
+									"\r",
+									"  if (json.expiresIn) {\r",
+									"    pm.expect(json.expiresIn).to.be.a(\"string\");\r",
+									"  }\r",
+									"});\r",
+									"\r",
+									"// ✅ 4. 환경 변수에 Firebase 토큰/유저 정보 저장\r",
+									"pm.test(\"Save Firebase signUp info to environment\", function () {\r",
+									"  pm.environment.set(\"firebaseIdToken\", json.idToken);\r",
+									"  pm.environment.set(\"firebaseRefreshToken\", json.refreshToken);\r",
+									"  pm.environment.set(\"firebaseEmail\", json.email);\r",
+									"  pm.environment.set(\"firebaseLocalId\", json.localId);\r",
+									"\r",
+									"  console.log(\"[Firebase signUp] firebaseIdToken / firebaseRefreshToken / firebaseEmail / firebaseLocalId saved to env\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"nomail6@example.com\",\r\n  \"password\": \"password123\",\r\n  \"returnSecureToken\": true\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyA3hsEFdwztONFfdEU9hleJQDR5kxijR-Y",
+							"protocol": "https",
+							"host": [
+								"identitytoolkit",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"v1",
+								"accounts:signUp"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "AIzaSyA3hsEFdwztONFfdEU9hleJQDR5kxijR-Y"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Kakao Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or error\", function () {\r",
+									"  pm.expect([200, 400, 401, 422]).to.include(pm.response.code);\r",
+									"});\r",
+									"\r",
+									"try {\r",
+									"  const json = pm.response.json();\r",
+									"\r",
+									"  if (pm.response.code === 200 && json.success && json.data) {\r",
+									"    const data = json.data;\r",
+									"\r",
+									"    if (data.accessToken) {\r",
+									"      pm.environment.set(\"accessToken\", data.accessToken);\r",
+									"      console.log(\"[KAKAO] set accessToken\");\r",
+									"    }\r",
+									"    if (data.refreshToken) {\r",
+									"      pm.environment.set(\"refreshToken\", data.refreshToken);\r",
+									"      console.log(\"[KAKAO] set refreshToken\");\r",
+									"    }\r",
+									"    if (data.user && data.user.id) {\r",
+									"      pm.environment.set(\"userId\", data.user.id.toString());\r",
+									"      console.log(\"[KAKAO] set userId\");\r",
+									"    }\r",
+									"  } else {\r",
+									"    console.warn(\"[KAKAO] login failed or unexpected response:\", json);\r",
+									"  }\r",
+									"} catch (e) {\r",
+									"  console.error(\"[KAKAO] Failed to parse JSON:\", e);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTIzMTQzNCwiZXhwIjoxNzY1MjMyMzM0fQ.jyMYDpcoL84WOFmdeESRWg0UqYzct3IrUy-rAacmb74",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"code\": \"9NyqkaxNnbcxbAtoE-AVhOc6_aaI7062sszSd2nUeWjUZUK-YxAQugAAAAQKFwvXAAABm1ahu-zdCc_9be4aqQ\"\r\n}\r\n"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/kakao",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"kakao"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK - Kakao Login Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"code\": \"{{kakaoCode}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/kakao",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"kakao"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": 2,\n      \"email\": \"kakao-user@example.com\",\n      \"nickname\": \"카카오닉\",\n      \"role\": \"ROLE_USER\"\n    },\n    \"accessToken\": \"access-token-from-our-service\",\n    \"refreshToken\": \"refresh-token-from-our-service\"\n  }\n}"
+						},
+						{
+							"name": "400 Bad Request - Code Required",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ }"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/kakao",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"kakao"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"VALIDATION_FAILED\",\n    \"message\": \"Validation failed\",\n    \"details\": [\n      { \"param\": \"code\", \"msg\": \"KAKAO_CODE_REQUIRED\" }\n    ]\n  }\n}"
+						},
+						{
+							"name": "422 Unprocessable Entity - Social Login Failed",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"code\": \"invalid-or-expired-code\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/kakao",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"kakao"
+									]
+								}
+							},
+							"status": "Unprocessable Entity",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"SOCIAL_LOGIN_FAILED\",\n    \"message\": \"Social login failed\",\n    \"details\": {\n      \"message\": \"invalid_grant\"\n    }\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Firebase Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ✅ 1. 상태 코드: 200 또는 예상 에러 코드(400, 401, 422)\r",
+									"pm.test(\"Status code is 200 or expected error\", function () {\r",
+									"  pm.expect([200, 400, 401, 422]).to.include(pm.response.code);\r",
+									"});\r",
+									"\r",
+									"let json;\r",
+									"\r",
+									"// ✅ 2. 응답이 JSON인지 검사 (200이든 에러든 공통)\r",
+									"pm.test(\"Response is valid JSON\", function () {\r",
+									"  json = pm.response.json();\r",
+									"  pm.expect(json).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"// ✅ 3. 200일 때 응답 포맷 검사 (success=true & data 객체)\r",
+									"if (pm.response.code === 200) {\r",
+									"  pm.test(\"Success response has success=true and data object\", function () {\r",
+									"    pm.expect(json).to.have.property(\"success\", true);\r",
+									"    pm.expect(json).to.have.property(\"data\");\r",
+									"    pm.expect(json.data).to.be.an(\"object\");\r",
+									"  });\r",
+									"\r",
+									"  pm.test(\"Success response has user + tokens\", function () {\r",
+									"    const data = json.data;\r",
+									"\r",
+									"    pm.expect(data).to.have.property(\"accessToken\");\r",
+									"    pm.expect(data).to.have.property(\"refreshToken\");\r",
+									"    pm.expect(data).to.have.property(\"user\");\r",
+									"    pm.expect(data.user).to.be.an(\"object\");\r",
+									"    pm.expect(data.user).to.have.property(\"id\");\r",
+									"  });\r",
+									"\r",
+									"  // ✅ 4. 200 성공 시: 토큰 & 유저 정보 환경 변수에 저장\r",
+									"  pm.test(\"Save accessToken / refreshToken / userId to environment\", function () {\r",
+									"    const data = json.data;\r",
+									"\r",
+									"    if (data.accessToken) {\r",
+									"      pm.environment.set(\"accessToken\", data.accessToken);\r",
+									"      console.log(\"[FIREBASE] set accessToken\");\r",
+									"    }\r",
+									"    if (data.refreshToken) {\r",
+									"      pm.environment.set(\"refreshToken\", data.refreshToken);\r",
+									"      console.log(\"[FIREBASE] set refreshToken\");\r",
+									"    }\r",
+									"    if (data.user && data.user.id) {\r",
+									"      pm.environment.set(\"userId\", data.user.id.toString());\r",
+									"      console.log(\"[FIREBASE] set userId\");\r",
+									"    }\r",
+									"  });\r",
+									"} else {\r",
+									"  // ✅ 5. 에러 응답일 때: 코드/메시지 로깅\r",
+									"  pm.test(\"Error response has code/message fields (debug only)\", function () {\r",
+									"    console.warn(\"[FIREBASE] login failed or unexpected response:\", json);\r",
+									"  });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"idToken\": \"{{firebaseIdToken}}\"\n}\n"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/firebase",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"firebase"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK - Firebase Login Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"idToken\": \"{{firebaseIdToken}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/firebase",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"firebase"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": 3,\n      \"email\": \"firebase-user@example.com\",\n      \"nickname\": \"FirebaseUser\",\n      \"role\": \"ROLE_USER\"\n    },\n    \"accessToken\": \"access-token-from-our-service\",\n    \"refreshToken\": \"refresh-token-from-our-service\"\n  }\n}"
+						},
+						{
+							"name": "400 Bad Request - ID Token Required",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ }"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/firebase",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"firebase"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"VALIDATION_FAILED\",\n    \"message\": \"Validation failed\",\n    \"details\": [\n      { \"param\": \"idToken\", \"msg\": \"FIREBASE_ID_TOKEN_REQUIRED\" }\n    ]\n  }\n}"
+						},
+						{
+							"name": "422 Unprocessable Entity - Social Login Failed",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"idToken\": \"invalid-or-expired-id-token\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/firebase",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"firebase"
+									]
+								}
+							},
+							"status": "Unprocessable Entity",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"SOCIAL_LOGIN_FAILED\",\n    \"message\": \"Social login failed\",\n    \"details\": {\n      \"message\": \"Firebase token verification failed\"\n    }\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "카카오 로그아웃",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTIzMTk0NSwiZXhwIjoxNzY1MjMyODQ1fQ.WVOK2hbUiG7XcOBLU_a3_7nDXPMKaab4XgpwoJAv2n4",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"refreshToken\": \"{{refreshToken}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Items",
+			"item": [
+				{
+					"name": "List Items - 기본 (page=0,size=10)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ✅ 200 OK 확인",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// ✅ success=true, data 존재 확인",
+									"pm.test(\"Response has success=true and data\", function () {",
+									"  const json = pm.response.json();",
+									"  pm.expect(json).to.have.property(\"success\", true);",
+									"  pm.expect(json).to.have.property(\"data\");",
+									"});",
+									"",
+									"// ✅ 페이지네이션 필드 확인",
+									"pm.test(\"Data has pagination fields\", function () {",
+									"  const data = pm.response.json().data;",
+									"  pm.expect(data).to.have.property(\"content\");",
+									"  pm.expect(Array.isArray(data.content)).to.be.true;",
+									"  pm.expect(data).to.have.property(\"page\");",
+									"  pm.expect(data).to.have.property(\"size\");",
+									"  pm.expect(data).to.have.property(\"totalElements\");",
+									"  pm.expect(data).to.have.property(\"totalPages\");",
+									"  pm.expect(data).to.have.property(\"sort\");",
+									"});",
+									"",
+									"// ✅ 첫 번째 아이템이 있으면 itemId 컬렉션 변수로 저장 (상세 요청에서 사용)",
+									"pm.test(\"Save first item id as collection variable\", function () {",
+									"  const data = pm.response.json().data;",
+									"  const items = data.content || [];",
+									"  if (items.length === 0) {",
+									"    console.log(\"[ITEM] No items in list. Seed 데이터 확인 필요.\");",
+									"    return;",
+									"  }",
+									"  const firstId = items[0].id;",
+									"  pm.collectionVariables.set(\"itemId\", String(firstId));",
+									"  console.log(\"[ITEM] Set collection variable itemId =\", firstId);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/items?page=0&size=10&sort=createdAt,DESC",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"items"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "sort",
+									"value": "createdAt,DESC"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Items - 필터/정렬 예시 (price,DESC)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ------- Status Code -------",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// ------- 기본 구조 -------",
+									"pm.test(\"Response has success=true and data\", function () {",
+									"  const json = pm.response.json();",
+									"  pm.expect(json).to.have.property(\"success\", true);",
+									"  pm.expect(json).to.have.property(\"data\");",
+									"});",
+									"",
+									"// ------- content 배열 확인 -------",
+									"pm.test(\"content is array\", function () {",
+									"  const data = pm.response.json().data;",
+									"  pm.expect(data).to.have.property(\"content\");",
+									"  pm.expect(Array.isArray(data.content)).to.be.true;",
+									"});",
+									"",
+									"// ------- 가격 오름차순 정렬 확인 -------",
+									"pm.test(\"Items sorted by price ASC\", function () {",
+									"  const items = pm.response.json().data.content || [];",
+									"  if (items.length <= 1) {",
+									"    console.log(\"[ITEM] Not enough items to test sorting\");",
+									"    return;",
+									"  }",
+									"  for (let i = 1; i < items.length; i++) {",
+									"    pm.expect(items[i].price).to.be.at.least(items[i - 1].price);",
+									"  }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/items?sort=price,ASC&page=0&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"items"
+							],
+							"query": [
+								{
+									"key": "sort",
+									"value": "price,ASC"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Items - 필터/정렬 예시 (csTag=operating-system)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ✅ 200 OK 확인",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// ✅ 기본 응답 구조 확인",
+									"pm.test(\"Response has success=true and data\", function () {",
+									"  const json = pm.response.json();",
+									"  pm.expect(json).to.have.property(\"success\", true);",
+									"  pm.expect(json).to.have.property(\"data\");",
+									"});",
+									"",
+									"// ✅ content 존재하면 csTag 검사",
+									"pm.test(\"If items exist, they have csTag=operating-system\", function () {",
+									"  const data = pm.response.json().data;",
+									"  const items = data.content || [];",
+									"  if (items.length === 0) {",
+									"    console.log(\"[ITEM] No items found for csTag=operating-system. (seed 데이터에 의해 달라질 수 있음)\");",
+									"    return;",
+									"  }",
+									"  items.forEach((item) => {",
+									"    pm.expect(item).to.have.property(\"csTag\");",
+									"    pm.expect(item.csTag).to.eql(\"operating-system\");",
+									"  });",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/items?csTag=operating-system&page=0&size=10&sort=createdAt,DESC",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"items"
+							],
+							"query": [
+								{
+									"key": "csTag",
+									"value": "operating-system"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "sort",
+									"value": "createdAt,DESC"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Items - 잘못된 page/size (400 INVALID_QUERY_PARAM)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ❌ 잘못된 page/size → 400 기대",
+									"pm.test(\"Status code is 400\", function () {",
+									"  pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// ✅ 에러 포맷 및 코드 확인",
+									"pm.test(\"Error response has code=INVALID_QUERY_PARAM\", function () {",
+									"  const json = pm.response.json();",
+									"  pm.expect(json).to.have.property(\"timestamp\");",
+									"  pm.expect(json).to.have.property(\"path\");",
+									"  pm.expect(json).to.have.property(\"status\", 400);",
+									"  pm.expect(json).to.have.property(\"code\");",
+									"  pm.expect(json.code).to.eql(\"INVALID_QUERY_PARAM\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/items?page=-1&size=999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"items"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "-1"
+								},
+								{
+									"key": "size",
+									"value": "999"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Item Detail - itemId 변수 사용 (200)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// ⚠ 사전 검사: itemId가 설정되어 있는지 확인",
+									"const itemId = pm.collectionVariables.get(\"itemId\");",
+									"if (!itemId) {",
+									"  console.warn(\"[ITEM] collectionVariables.itemId 가 비어 있습니다. 먼저 'List Items - 기본'을 실행해서 id를 세팅하세요.\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ✅ 200 OK 확인",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// ✅ success=true 및 data 존재 확인",
+									"pm.test(\"Response has success=true and data\", function () {",
+									"  const json = pm.response.json();",
+									"  pm.expect(json).to.have.property(\"success\", true);",
+									"  pm.expect(json).to.have.property(\"data\");",
+									"});",
+									"",
+									"// ✅ 상세 아이템 필드 및 id 일치 여부 확인",
+									"pm.test(\"Item detail has correct id and fields\", function () {",
+									"  const json = pm.response.json();",
+									"  const item = json.data;",
+									"  const expectedId = pm.collectionVariables.get(\"itemId\");",
+									"",
+									"  pm.expect(item).to.have.property(\"id\");",
+									"  pm.expect(item).to.have.property(\"name\");",
+									"  pm.expect(item).to.have.property(\"price\");",
+									"  pm.expect(item).to.have.property(\"rarity\");",
+									"  pm.expect(item).to.have.property(\"csTag\");",
+									"",
+									"  if (expectedId) {",
+									"    pm.expect(item.id).to.eql(Number(expectedId));",
+									"  } else {",
+									"    console.warn(\"[ITEM] expectedId(컬렉션 변수)가 없어 id 일치 여부는 스킵합니다.\");",
+									"  }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/items/{{itemId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"items",
+								"{{itemId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Item Detail - 존재하지 않는 ID (404 ITEM_NOT_FOUND)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// ❌ 존재하지 않는 ID → 404 기대",
+									"pm.test(\"Status code is 404\", function () {",
+									"  pm.response.to.have.status(404);",
+									"});",
+									"",
+									"// ✅ 에러 코드 ITEM_NOT_FOUND 확인",
+									"pm.test(\"Error response has code=ITEM_NOT_FOUND\", function () {",
+									"  const json = pm.response.json();",
+									"  pm.expect(json).to.have.property(\"status\", 404);",
+									"  pm.expect(json).to.have.property(\"code\", \"ITEM_NOT_FOUND\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/items/999999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"999999"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Item Detail - 잘못된 ID 형식 (400 ITEM_ID_INVALID)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// ❌ 잘못된 ID 형식 → 400 기대",
+									"pm.test(\"Status code is 400\", function () {",
+									"  pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// ✅ 에러 코드 ITEM_ID_INVALID 확인",
+									"pm.test(\"Error response has code=ITEM_ID_INVALID\", function () {",
+									"  const json = pm.response.json();",
+									"  pm.expect(json).to.have.property(\"status\", 400);",
+									"  pm.expect(json).to.have.property(\"code\", \"ITEM_ID_INVALID\");",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/items/abc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"abc"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cart",
+			"item": [
+				{
+					"name": "Add to Cart",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTIzMzQzMSwiZXhwIjoxNzY1MjM0MzMxfQ.yqdrtFV2Wi7QWd2M7YT-AU0I1huKqSyn8ZvblhOR19o",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"itemId\": 32,\n  \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/cart",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart"
+							]
+						},
+						"description": "Get Cart로 장바구니 내역을 조회했을때 나오는\n\n\"id\": 9  \n위 id에 있는 숫자를 기억해야 합니다.  \n  \nAdd to Cart 의 Body 에 있는 itemId 에  \n위 기억한 숫자를 대입하면 됩니다.\n\n{  \"itemId\": 9,  \"quantity\": 2}"
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTIzMzQzMSwiZXhwIjoxNzY1MjM0MzMxfQ.yqdrtFV2Wi7QWd2M7YT-AU0I1huKqSyn8ZvblhOR19o",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"itemId\": 32,\n  \"quantity\": 2\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/cart",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"cart"
+									]
+								},
+								"description": "Get Cart로 장바구니 내역을 조회했을때 나오는\n\n\"id\": 9  \n위 id에 있는 숫자를 기억해야 합니다.  \n  \nAdd to Cart 의 Body 에 있는 itemId 에  \n위 기억한 숫자를 대입하면 됩니다.\n\n{  \"itemId\": 9,  \"quantity\": 2}"
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"items\": [\n    {\n      \"id\": 1,\n      \"itemId\": 1,\n      \"userId\": 1,\n      \"quantity\": 2\n    }\n  ],\n  \"totalPrice\": 3000\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Cart",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTIyMjg4NCwiZXhwIjoxNzY1MjIzNzg0fQ.SpdOcd_iIQJ1XOjlKGSc__gPGMVZZXdmEhDUr7XLXRs",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/cart",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTIyMjg4NCwiZXhwIjoxNzY1MjIzNzg0fQ.SpdOcd_iIQJ1XOjlKGSc__gPGMVZZXdmEhDUr7XLXRs",
+										"type": "text",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/cart",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"cart"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"items\": [\n    {\n      \"id\": 1,\n      \"itemId\": 1,\n      \"userId\": 1,\n      \"quantity\": 2,\n      \"item\": {\n        \"id\": 1,\n        \"name\": \"Debugging Blade\",\n        \"price\": 1500,\n        \"rarity\": \"epic\"\n      }\n    }\n  ],\n  \"totalPrice\": 3000\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Cart Item",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTE0MzA5MiwiZXhwIjoxNzY1MTQzOTkyfQ.Fu081hnvhfZ2t7croYZ5f-omF4sjxb91PRPrwP11IcQ",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cartItemId\": 2,\n  \"quantity\": 5\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/cart",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart"
+							]
+						},
+						"description": "Get Cart로 장바구니 내역을 조회했을때 나오는\n\n\"id\": 9  \n위 id에 있는 숫자를 기억해야 합니다.\n\nUpdate Cart Item의 Body 에 있는 CartItemId 에  \n위 기억한 숫자 를 대입하면 됩니다.\n\n{  \"cartItemId\": 9,  \"quantity\": 5}"
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTE0MzA5MiwiZXhwIjoxNzY1MTQzOTkyfQ.Fu081hnvhfZ2t7croYZ5f-omF4sjxb91PRPrwP11IcQ",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"cartItemId\": 2,\n  \"quantity\": 5\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/cart",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"cart"
+									]
+								},
+								"description": "Get Cart로 장바구니 내역을 조회했을때 나오는\n\n\"id\": 9  \n위 id에 있는 숫자를 기억해야 합니다.\n\nUpdate Cart Item의 Body 에 있는 CartItemId 에  \n위 기억한 숫자 를 대입하면 됩니다.\n\n{  \"cartItemId\": 9,  \"quantity\": 5}"
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"items\": [\n    {\n      \"id\": 1,\n      \"itemId\": 1,\n      \"userId\": 1,\n      \"quantity\": 5\n    }\n  ],\n  \"totalPrice\": 7500\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete Cart Item",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTE0MzA5MiwiZXhwIjoxNzY1MTQzOTkyfQ.Fu081hnvhfZ2t7croYZ5f-omF4sjxb91PRPrwP11IcQ",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cartItemId\": 3\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/cart",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK (Empty Cart)",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTE0MzA5MiwiZXhwIjoxNzY1MTQzOTkyfQ.Fu081hnvhfZ2t7croYZ5f-omF4sjxb91PRPrwP11IcQ",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"cartItemId\": 3\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/cart",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"cart"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"items\": [],\n  \"totalPrice\": 0\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Orders (Inventory)",
+			"item": [
+				{
+					"name": "Create Order",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTIzMzQzMSwiZXhwIjoxNzY1MjM0MzMxfQ.yqdrtFV2Wi7QWd2M7YT-AU0I1huKqSyn8ZvblhOR19o",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"paymentMethod\": \"CARD\",\n  \"shippingAddress\": \"서울시 어딘가\",\n  \"shippingMemo\": \"조심히 배송해주세요\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							]
+						},
+						"description": "현재 장바구니(Cart)에 있는 목록이 주문됩니다."
+					},
+					"response": [
+						{
+							"name": "201 Created",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTIzMzQzMSwiZXhwIjoxNzY1MjM0MzMxfQ.yqdrtFV2Wi7QWd2M7YT-AU0I1huKqSyn8ZvblhOR19o",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"paymentMethod\": \"CARD\",\n  \"shippingAddress\": \"서울시 어딘가\",\n  \"shippingMemo\": \"조심히 배송해주세요\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/orders",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"orders"
+									]
+								},
+								"description": "현재 장바구니(Cart)에 있는 목록이 주문됩니다."
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"id\": 1,\n  \"userId\": 1,\n  \"totalPrice\": 3000,\n  \"status\": \"PACKET_SENDING\",\n  \"paymentMethod\": \"CARD\",\n  \"shippingAddress\": \"서울시 어딘가\",\n  \"shippingMemo\": \"조심히 배송해주세요\",\n  \"createdAt\": \"2025-01-01T10:00:00Z\",\n  \"updatedAt\": \"2025-01-01T10:00:00Z\",\n  \"items\": [\n    {\n      \"id\": 1,\n      \"orderId\": 1,\n      \"itemId\": 1,\n      \"itemNameSnapshot\": \"Debugging Blade\",\n      \"raritySnapshot\": \"epic\",\n      \"statIntSnapshot\": 5,\n      \"statStrSnapshot\": 10,\n      \"statDexSnapshot\": 15,\n      \"statLckSnapshot\": 2,\n      \"csTagSnapshot\": \"debugging\",\n      \"quantity\": 2,\n      \"unitPrice\": 1500,\n      \"subtotalPrice\": 3000\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Get My Orders",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/orders",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"orders"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"orders\": [\n    {\n      \"id\": 1,\n      \"totalPrice\": 3000,\n      \"status\": \"PACKET_SENDING\",\n      \"createdAt\": \"2025-01-01T10:00:00Z\"\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Order Detail",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTIzMzQzMSwiZXhwIjoxNzY1MjM0MzMxfQ.yqdrtFV2Wi7QWd2M7YT-AU0I1huKqSyn8ZvblhOR19o",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/orders/2",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders",
+								"2"
+							]
+						},
+						"description": "1. Get My Orders send를 눌러 respond 를 받습니다.\n    \n2. order 목록 중 원하는 order의 id를 기억합니다.\n    \n3. Order Detail의 {baseUrl}/orders/ 뒤에 id를 입력합니다.\n    \n\n(예시 {baseUrl}/orders/1)"
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTIzMzQzMSwiZXhwIjoxNzY1MjM0MzMxfQ.yqdrtFV2Wi7QWd2M7YT-AU0I1huKqSyn8ZvblhOR19o",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/orders/2",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"orders",
+										"2"
+									]
+								},
+								"description": "1. Get My Orders send를 눌러 respond 를 받습니다.\n    \n2. order 목록 중 원하는 order의 id를 기억합니다.\n    \n3. Order Detail의 {baseUrl}/orders/ 뒤에 id를 입력합니다.\n    \n\n(예시 {baseUrl}/orders/1)"
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"id\": 1,\n  \"userId\": 1,\n  \"totalPrice\": 3000,\n  \"status\": \"PACKET_SENDING\",\n  \"paymentMethod\": \"CARD\",\n  \"shippingAddress\": \"서울시 어딘가\",\n  \"shippingMemo\": \"조심히 배송해주세요\",\n  \"createdAt\": \"2025-01-01T10:00:00Z\",\n  \"updatedAt\": \"2025-01-01T10:00:00Z\",\n  \"items\": [\n    {\n      \"id\": 1,\n      \"orderId\": 1,\n      \"itemId\": 1,\n      \"itemNameSnapshot\": \"Debugging Blade\",\n      \"raritySnapshot\": \"epic\",\n      \"statIntSnapshot\": 5,\n      \"statStrSnapshot\": 10,\n      \"statDexSnapshot\": 15,\n      \"statLckSnapshot\": 2,\n      \"csTagSnapshot\": \"debugging\",\n      \"quantity\": 2,\n      \"unitPrice\": 1500,\n      \"subtotalPrice\": 3000\n    }\n  ]\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Admin - Items",
+			"item": [
+				{
+					"name": "Admin Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1) 상태 코드 체크 (200 또는 인증 관련 에러 허용)",
+									"pm.test(\"Status is 200 or auth-related error\", function () {",
+									"  pm.expect([200, 400, 401, 422]).to.include(pm.response.code);",
+									"});",
+									"",
+									"let json;",
+									"try {",
+									"  json = pm.response.json();",
+									"} catch (e) {",
+									"  console.log(\"[LOGIN] ⚠️ 응답 JSON 파싱 실패:\", e);",
+									"  return;",
+									"}",
+									"",
+									"if (pm.response.code === 200 && json.success === true && json.data) {",
+									"  pm.test(\"success=true\", function () {",
+									"    pm.expect(json.success).to.eql(true);",
+									"  });",
+									"",
+									"  pm.test(\"토큰 필드 존재\", function () {",
+									"    pm.expect(json.data).to.have.property(\"accessToken\");",
+									"    pm.expect(json.data).to.have.property(\"refreshToken\");",
+									"  });",
+									"",
+									"  const accessToken = json.data.accessToken;",
+									"  const refreshToken = json.data.refreshToken;",
+									"",
+									"  function decodeJwtExp(token) {",
+									"    try {",
+									"      const parts = token.split(\".\");",
+									"      if (parts.length !== 3) return null;",
+									"      const base64 = parts[1].replace(/-/g, \"+\").replace(/_/g, \"/\");",
+									"      const jsonStr = atob(base64);",
+									"      const payload = JSON.parse(jsonStr);",
+									"      if (!payload.exp) return null;",
+									"      return payload.exp * 1000;",
+									"    } catch (e) {",
+									"      console.log(\"[LOGIN] Failed to decode JWT exp\", e);",
+									"      return null;",
+									"    }",
+									"  }",
+									"",
+									"  const expMs = decodeJwtExp(accessToken);",
+									"",
+									"  pm.collectionVariables.set(\"accessToken\", accessToken);",
+									"  pm.collectionVariables.set(\"refreshToken\", refreshToken);",
+									"  if (expMs) {",
+									"    pm.collectionVariables.set(\"tokenExpiresAt\", String(expMs));",
+									"  }",
+									"",
+									"  if (json.data.user && json.data.user.role) {",
+									"    pm.collectionVariables.set(\"userRole\", json.data.user.role);",
+									"  }",
+									"",
+									"  console.log(\"[LOGIN] ✅ accessToken saved, expiresAt(ms) =\", expMs);",
+									"} else {",
+									"  console.log(",
+									"    \"[LOGIN] ⛔ 로그인 실패 또는 에러 응답\",",
+									"    \"status:\", pm.response.code,",
+									"    \"code:\", json.code,",
+									"    \"message:\", json.message,",
+									"    \"details:\", json.details",
+									"  );",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6IlJPTEVfVVNFUiIsImlhdCI6MTc2NTIyMjU0MiwiZXhwIjoxNzY1MjIzNDQyfQ.BokPqaJQuhc04zp9HR6OyVqngQjZ5P67vjehcj39PcI",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin1234\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Item - 정상 요청 (201)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NjUyMjI3OTcsImV4cCI6MTc2NTIyMzY5N30.4OqvIvgiqtZyl44DZhkyOuyJ5psNdCgvqGPhf71Npcc",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"A+ 맞는 법\",\n  \"price\": 3000,\n  \"description\": \"A+ 맞는 족보\",\n  \"rarity\": \"EPIC\",\n  \"stat_int\": 10,\n  \"stat_str\": 0,\n  \"stat_dex\": 0,\n  \"stat_lck\": 3,\n  \"cs_tag\": \"족보\",\n  \"stock_quantity\": 99,\n  \"is_active\": true\n\n}\n"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/items",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Item - 이름 비어있음 (400 ITEM_NAME_INVALID)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+									"pm.test(\"Error code ITEM_NAME_INVALID\", () => {",
+									"  const res = pm.response.json();",
+									"  pm.expect(res.code).to.eql(\"VALIDATION_FAILED\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"\",\n  \"price\": 1000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/items",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Item - 잘못된 rarity (400 ITEM_RARITY_INVALID)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+									"pm.test(\"Error code ITEM_RARITY_INVALID\", () => {",
+									"  const res = pm.response.json();",
+									"  pm.expect(res.code).to.eql(\"VALIDATION_FAILED\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"잘못된 희귀도 아이템\",\n  \"price\": 3000,\n  \"rarity\": \"SUPERLEGENDARY\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/items",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Item - 정상 수정 (200, Path :itemId)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const json = pm.response.json();",
+									"",
+									"if (pm.response.code === 401 && json.code === \"AUTH_TOKEN_EXPIRED\") {",
+									"  console.log(\"[ADMIN UPDATE] Token expired. Please re-run after auto-refresh.\");",
+									"}",
+									"",
+									"pm.test(\"Status 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"success=true\", function () {",
+									"  pm.expect(json.success).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"price\": 77777,\n  \"stock_quantity\": 99\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/items/:itemId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"items",
+								":itemId"
+							],
+							"variable": [
+								{
+									"key": "itemId",
+									"value": "261"
+								}
+							]
+						},
+						"description": "List Items에 나온 아이템의 id나  \nCreate Item으로 생성한 아이템의 id를 기억합니다.\n\n예를 들어, Create Item으로 생성한 아이템의 id를 가져오면,\n\n{  \n\"success\": true,  \n\"data\": {  \n\"id\": 521,  \n\"name\": \"A+ 맞는 법\",  \n\"price\": 3000,  \n\"description\": \"A+ 맞는 족보\",  \n\"rarity\": \"EPIC\",  \n\"statInt\": 10,  \n\"statStr\": 0,  \n\"statDex\": 0,  \n\"statLck\": 3,  \n\"csTag\": \"족보\",  \n\"stockQuantity\": 99,  \n\"isActive\": true,  \n\"categoryId\": null,  \n\"createdAt\": \"2025-12-20T06:41:41.885Z\",  \n\"updatedAt\": \"2025-12-20T06:41:41.885Z\"  \n}  \n}\n\n위 아이템의 id(521)를 기억합니다.  \n이후 {baseUrl}/admin/items/:itemId 의 :itemId에 마우스를 올려서 생성된 텍스트 공간에 위 아이템 id를 넣으면 됩니다."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Item - 잘못된 ID (400 ITEM_ID_INVALID)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+									"pm.test(\"ITEM_ID_INVALID\", () => {",
+									"  const json = pm.response.json();",
+									"  pm.expect(json.code).to.eql(\"ITEM_ID_INVALID\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"price\": 1000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/items/abc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"items",
+								"abc"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Item - 존재하지 않는 ID (404 ITEM_NOT_FOUND)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 404\", () => pm.response.to.have.status(404));",
+									"pm.test(\"ITEM_NOT_FOUND\", () => {",
+									"  const json = pm.response.json();",
+									"  pm.expect(json.code).to.eql(\"ITEM_NOT_FOUND\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"price\": 1234\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/items/9999999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"items",
+								"9999999"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Delete Item (Path :itemId)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const json = pm.response.json();",
+									"",
+									"if (pm.response.code === 401 && json.code === \"AUTH_TOKEN_EXPIRED\") {",
+									"  console.log(\"[ADMIN DELETE] Token expired. Please re-run after auto-refresh.\");",
+									"}",
+									"",
+									"pm.test(\"Status 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"success=true\", function () {",
+									"  pm.expect(json.success).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/items/:itemId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"items",
+								":itemId"
+							],
+							"variable": [
+								{
+									"key": "itemId",
+									"value": "261"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin - Orders",
+			"item": [
+				{
+					"name": "Admin - Get All Orders",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NjUyOTkyMDIsImV4cCI6MTc2NTMwMDEwMn0.RNzwBgNmFsFBx1e0ZuJqtL0WTDg0rRJY06CAMZ8_OEs",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/orders?status=PACKET_SENDING",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "PACKET_SENDING"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NjUyOTkyMDIsImV4cCI6MTc2NTMwMDEwMn0.RNzwBgNmFsFBx1e0ZuJqtL0WTDg0rRJY06CAMZ8_OEs",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/orders?status=PACKET_SENDING",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"admin",
+										"orders"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "PACKET_SENDING"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"orders\": [\n    {\n      \"id\": 1,\n      \"userId\": 1,\n      \"totalPrice\": 3000,\n      \"status\": \"PACKET_SENDING\",\n      \"createdAt\": \"2025-01-01T10:00:00Z\"\n    }\n  ]\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Admin - Stats",
+			"item": [
+				{
+					"name": "Popular Items (Top)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NjUyOTk5OTAsImV4cCI6MTc2NTMwMDg5MH0.Jd9wSCiX8nWGT1R4hOSq7TasvSXgqTrydWKSeuVGD3U",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/stats/popular-items?limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"stats",
+								"popular-items"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NjUyOTk5OTAsImV4cCI6MTc2NTMwMDg5MH0.Jd9wSCiX8nWGT1R4hOSq7TasvSXgqTrydWKSeuVGD3U",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/stats/popular-items?limit=10",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"admin",
+										"stats",
+										"popular-items"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"items\": [\n    {\n      \"itemId\": 1,\n      \"name\": \"Debugging Blade\",\n      \"totalQuantitySold\": 42,\n      \"totalRevenue\": 63000\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Top Users",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NjUyOTk5OTAsImV4cCI6MTc2NTMwMDg5MH0.Jd9wSCiX8nWGT1R4hOSq7TasvSXgqTrydWKSeuVGD3U",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/stats/top-users?limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"stats",
+								"top-users"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NjUyOTk5OTAsImV4cCI6MTc2NTMwMDg5MH0.Jd9wSCiX8nWGT1R4hOSq7TasvSXgqTrydWKSeuVGD3U",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/stats/top-users?limit=10",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"admin",
+										"stats",
+										"top-users"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"users\": [\n    {\n      \"userId\": 1,\n      \"username\": \"testuser\",\n      \"totalOrders\": 5,\n      \"totalAmount\": 15000\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Orders Summary (By Period)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NjUyOTk5OTAsImV4cCI6MTc2NTMwMDg5MH0.Jd9wSCiX8nWGT1R4hOSq7TasvSXgqTrydWKSeuVGD3U",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/stats/orders-summary?from=2025-01-01&to=2025-12-31",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"stats",
+								"orders-summary"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "2025-01-01"
+								},
+								{
+									"key": "to",
+									"value": "2025-12-31"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NjUyOTk5OTAsImV4cCI6MTc2NTMwMDg5MH0.Jd9wSCiX8nWGT1R4hOSq7TasvSXgqTrydWKSeuVGD3U",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/admin/stats/orders-summary?from=2025-01-01&to=2025-12-31",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"admin",
+										"stats",
+										"orders-summary"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "2025-01-01"
+										},
+										{
+											"key": "to",
+											"value": "2025-12-31"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "Text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"buckets\": [\n    {\n      \"period\": \"2025-01\",\n      \"orderCount\": 10,\n      \"totalAmount\": 30000\n    },\n    {\n      \"period\": \"2025-02\",\n      \"orderCount\": 5,\n      \"totalAmount\": 15000\n    }\n  ]\n}"
+						}
+					]
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://113.198.66.68:13180/api"
+		},
+		{
+			"key": "userToken",
+			"value": "<user_jwt_here>"
+		},
+		{
+			"key": "adminToken",
+			"value": "<admin_jwt_here>"
+		},
+		{
+			"key": "accessToken",
+			"value": ""
+		},
+		{
+			"key": "refreshToken",
+			"value": ""
+		},
+		{
+			"key": "tokenExpiresAt",
+			"value": ""
+		},
+		{
+			"key": "userRole",
+			"value": ""
+		},
+		{
+			"key": "itemId",
+			"value": ""
+		}
+	]
+}
