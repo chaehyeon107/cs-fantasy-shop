@@ -1705,7 +1705,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// ❌ 존재하지 않는 ID → 404 기대",
 									"pm.test(\"Status code is 404\", function () {",
@@ -1718,7 +1717,10 @@
 									"  pm.expect(json).to.have.property(\"status\", 404);",
 									"  pm.expect(json).to.have.property(\"code\", \"ITEM_NOT_FOUND\");",
 									"});"
-								]
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -1726,12 +1728,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/items/999999",
+							"raw": "{{baseUrl}}/items/999999",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"api",
 								"items",
 								"999999"
 							]
@@ -1745,7 +1746,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
 								"exec": [
 									"// ❌ 잘못된 ID 형식 → 400 기대",
 									"pm.test(\"Status code is 400\", function () {",
@@ -1758,7 +1758,10 @@
 									"  pm.expect(json).to.have.property(\"status\", 400);",
 									"  pm.expect(json).to.have.property(\"code\", \"ITEM_ID_INVALID\");",
 									"});"
-								]
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -1766,12 +1769,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/items/abc",
+							"raw": "{{baseUrl}}/items/abc",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"api",
 								"items",
 								"abc"
 							]
