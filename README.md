@@ -94,13 +94,13 @@ npm install # 혹은 npm ci
 docker desktop 설치로 로컬 서버 생성
 
 ```bash
-docker-compose -f docker-compose.prod.yml up -d --build
+cd backend
+docker compose -f docker-compose.dev.yml up -d --build
 ```
 
 * MySQL(cs-fantasy-mysql)
 * Redis(cs-fantasy-redis)
   컨테이너가 함께 기동된다.
-* 오류 발생 시 docker-compose.prod.yml 파일을 backend > 루트 폴더로 옮겨야한다. 
 
 ---
 
