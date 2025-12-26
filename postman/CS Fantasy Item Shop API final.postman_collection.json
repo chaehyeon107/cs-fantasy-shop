@@ -256,7 +256,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@example.com\", // \"user2@user.com\",\n  \"password\": \"admin1234\" // \"12345678\"\n}\n"
+							"raw": "{\n  \"email\": \"user2@user.com\", // \"admin@example.com\",\n  \"password\": \"12345678\" // \"admin1234\"\n}\n"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/auth/login",
@@ -267,7 +267,8 @@
 								"auth",
 								"login"
 							]
-						}
+						},
+						"description": " \"message\": \"이메일 또는 비밀번호가 올바르지 않습니다.\"\n\n오류가 나타나면 POST Register 를 요청하고 만든 계정으로 login 진행하기"
 					},
 					"response": [
 						{
